@@ -1,192 +1,335 @@
 # CryptoFinance - Professional Crypto Trading Platform
 
-A modern, professional cryptocurrency trading platform built with Next.js 14, featuring real-time market data, wallet integration, and AI-powered financial advice.
+A modern, professional cryptocurrency trading platform built with Next.js 14, featuring real-time market data, seamless wallet integration, and AI-powered financial advice.
 
 ## 🚀 Features
 
+### 💰 Market & Trading
 - **Real-time Market Data** - Live cryptocurrency prices via CoinGecko API
-- **Wallet Integration** - Support for MetaMask, WalletConnect, and Coinbase Wallet
-- **Authentication** - Email/password and wallet-based authentication
-- **Portfolio Management** - Track holdings across multiple blockchains
-- **AI Financial Advisor** - Chat-based crypto investment advice
-- **Professional UI** - Bloomberg-inspired minimalistic design
+- **Professional Charts** - Interactive price charts with technical indicators
+- **Market Analysis** - Comprehensive market insights and trends
+- **Multi-asset Support** - 100+ cryptocurrencies with detailed data
+
+### 🔗 Wallet Integration
+- **MetaMask Support** - Seamless browser wallet connection
 - **Multi-chain Support** - Ethereum, Polygon, and BSC networks
-- **News Feed** - Curated cryptocurrency news and insights
+- **Smart Connect Logic** - Dynamic UI based on wallet connection status
+- **Secure Authentication** - Wallet-based and email authentication
+
+### 📊 Portfolio Management
+- **Multi-wallet Tracking** - Connect multiple wallet addresses
+- **Real-time Balances** - Live portfolio valuation across chains
+- **Performance Analytics** - Detailed portfolio metrics and insights
+- **Asset Allocation** - Visual breakdown of holdings
+
+### 🤖 AI Financial Advisor
+- **Chat Interface** - Interactive AI-powered investment advice
+- **Portfolio Analysis** - Personalized recommendations based on holdings
+- **Market Insights** - Real-time analysis and trading signals
+- **Risk Assessment** - Smart risk management suggestions
+
+### 🎨 User Experience
+- **Professional UI** - Bloomberg-inspired minimalistic design
+- **Dark/Light Mode** - Seamless theme switching
+- **Responsive Design** - Optimized for desktop and mobile
+- **Clean Navigation** - Intuitive user interface without distractions
 
 ## 🛠 Tech Stack
 
+### Frontend
 - **Framework**: Next.js 14 (App Router)
 - **Styling**: Tailwind CSS + shadcn/ui
-- **Authentication**: NextAuth.js
-- **Wallet**: wagmi v2 + viem + WalletConnect v2
-- **Charts**: Recharts
 - **Animations**: Framer Motion
-- **API**: CoinGecko for market data
+- **Charts**: Recharts
+- **Icons**: Lucide React
+
+### Blockchain & Wallet
+- **Wallet Integration**: wagmi v2 + viem
+- **Web3 Provider**: WalletConnect v2
+- **Multi-chain**: Ethereum, Polygon, BSC
+- **Type Safety**: TypeScript throughout
+
+### Backend & Auth
+- **Authentication**: NextAuth.js
+- **API**: RESTful endpoints
+- **Data Source**: CoinGecko API
+- **State Management**: TanStack Query
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
-- A WalletConnect Project ID (free at [walletconnect.com](https://walletconnect.com))
+- **Node.js** 18+ 
+- **Package Manager** npm or yarn or pnpm
+- **WalletConnect Project ID** (free at [walletconnect.com](https://walletconnect.com))
+- **MetaMask** or compatible Web3 wallet
 
 ## ⚡ Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd crypto-dashboard
-   ```
+### 1. Clone & Install
+```bash
+git clone https://github.com/username/cryptoweb.git
+cd cryptoweb
+npm install
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### 2. Environment Setup
+Create `.env.local` in the root directory:
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-here
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
+```
 
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory:
-   ```bash
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-secret-key-here
-   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
-   ```
+### 3. Development Server
+```bash
+npm run dev
+```
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+### 4. Open Application
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## 🔐 Authentication & Wallet Connection
 
-## 🔐 Authentication
+### Wallet Connection Flow
+1. **Home Page**: Click "Connect" button
+2. **Wallet Selection**: Choose MetaMask, WalletConnect, or Coinbase
+3. **Authorization**: Approve connection in your wallet
+4. **Connected State**: Wallet address appears in navbar
+5. **Management**: Access portfolio, disconnect, switch networks
 
 ### Demo Account
+For testing email authentication:
 - **Email**: `demo@cryptofinance.app`
 - **Password**: `demo123!`
 
-### Wallet Authentication
-Connect with any supported wallet:
-- MetaMask
-- WalletConnect (any WC-compatible wallet)
-- Coinbase Wallet
+### Supported Wallets
+- ✅ **MetaMask** - Browser extension wallet
+- 🔜 **WalletConnect** - Mobile and desktop wallets (coming soon)
+- 🔜 **Coinbase Wallet** - Coinbase's native wallet (coming soon)
 
-## 📱 Usage
+## 📱 Application Sections
 
-### Markets
-- View real-time cryptocurrency prices
-- Sort and search through 100+ cryptocurrencies
-- Click on any asset for detailed charts
+### 🏠 Home
+- Hero section with platform overview
+- Real-time market ticker
+- Quick access to trading features
+- Professional landing experience
 
-### Portfolio (Protected)
-- Requires authentication (email or wallet)
-- Add wallet addresses to track holdings
-- View portfolio allocation and performance
+### 📈 Markets
+- Live cryptocurrency prices
+- Sortable data tables
+- Search functionality
+- Price change indicators
+- Market cap and volume data
 
-### AI Advisor (Protected)
-- Chat-based financial advice
+### 📊 Portfolio (Protected)
+- **Authentication Required**: Wallet or email login
+- Multi-wallet address tracking
+- Real-time balance calculations
+- Portfolio performance charts
+- Asset allocation breakdowns
+
+### 🤖 AI Advisor (Protected)
+- **Authentication Required**: Wallet or email login
+- Interactive chat interface
 - Portfolio-aware recommendations
-- Market insights and analysis
+- Market analysis and insights
+- Investment strategy suggestions
 
-### News
+### 📰 News
 - Curated cryptocurrency news
-- Bloomberg-style minimalistic layout
-- Real-time updates
+- Clean, Bloomberg-style layout
+- Regular content updates
+- Industry insights and analysis
 
 ## 🏗 Project Structure
 
 ```
-src/
-├── app/                    # Next.js app router pages
-│   ├── api/               # API routes
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Protected dashboard pages
-│   └── markets/           # Market data pages
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── ...               # Custom components
-├── lib/                  # Utility libraries
-│   ├── auth.ts           # NextAuth configuration
-│   ├── coingecko.ts      # CoinGecko API client
-│   └── wagmi.ts          # Wallet configuration
-└── hooks/                # Custom React hooks
+cryptoweb/
+├── src/
+│   ├── app/                 # Next.js App Router
+│   │   ├── api/            # API routes
+│   │   │   ├── auth/       # NextAuth endpoints
+│   │   │   ├── news/       # News API
+│   │   │   └── wallet-login/ # Wallet auth
+│   │   ├── auth/           # Authentication pages
+│   │   ├── dashboard/      # Protected dashboard
+│   │   ├── markets/        # Market data pages
+│   │   └── news/           # News section
+│   ├── components/         # React components
+│   │   ├── ui/            # shadcn/ui components
+│   │   ├── MetaMaskBtn.tsx # Wallet connection
+│   │   ├── WalletButton.tsx # Wallet management
+│   │   ├── navbar.tsx     # Navigation
+│   │   └── ...            # Other components
+│   ├── lib/               # Utility libraries
+│   │   ├── auth.ts        # NextAuth config
+│   │   ├── wagmi.ts       # Wallet config
+│   │   ├── coingecko.ts   # API client
+│   │   └── utils.ts       # Utilities
+│   └── hooks/             # Custom hooks
+│       └── use-crypto-data.ts
+├── public/                # Static assets
+├── docs/                  # Documentation files
+└── package.json          # Dependencies
 ```
 
 ## 🔧 Configuration
 
 ### WalletConnect Setup
-1. Go to [WalletConnect Cloud](https://cloud.walletconnect.com)
-2. Create a new project
-3. Copy your Project ID
-4. Add it to your `.env.local` file
+1. Visit [WalletConnect Cloud](https://cloud.walletconnect.com)
+2. Create new project
+3. Copy Project ID
+4. Add to `.env.local`:
+   ```env
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+   ```
 
 ### CoinGecko API (Optional)
 For production with higher rate limits:
-1. Get an API key from [CoinGecko](https://coingecko.com/api)
-2. Add `COINGECKO_API_KEY=your_key` to `.env.local`
-
-## 📊 API Routes
-
-- `GET /api/news` - Fetch cryptocurrency news
-- `POST /api/wallet-login` - Wallet authentication
-- `GET|POST /api/auth/[...nextauth]` - NextAuth endpoints
-
-## 🔄 Development
-
-### Adding New Components
-```bash
-npx shadcn@latest add [component-name]
+```env
+COINGECKO_API_KEY=your_api_key
 ```
 
-### Running Tests
-```bash
-npm run test
+### NextAuth Configuration
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-32-character-secret-key
 ```
 
-### Building for Production
-```bash
-npm run build
-npm start
-```
+## 📊 API Reference
 
-## 🌐 Deployment
+### Market Data
+- `GET /api/markets` - Cryptocurrency market data
+- `GET /api/charts/[id]` - Price chart data for specific crypto
+
+### Authentication
+- `GET|POST /api/auth/[...nextauth]` - NextAuth.js endpoints
+- `POST /api/wallet-login` - Wallet-based authentication
+
+### News & Content
+- `GET /api/news` - Cryptocurrency news feed
+- `GET /api/insights` - Market insights and analysis
+
+## 🚀 Deployment
 
 ### Vercel (Recommended)
-1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push
+1. Connect GitHub repository to Vercel
+2. Set environment variables in dashboard
+3. Deploy automatically on push to main branch
 
-### Other Platforms
-The app can be deployed to any platform supporting Next.js:
-- Netlify
-- Railway
-- AWS Amplify
-- DigitalOcean App Platform
+### Environment Variables for Production
+```env
+NEXTAUTH_URL=https://yourdomain.com
+NEXTAUTH_SECRET=your-production-secret
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+COINGECKO_API_KEY=your_api_key (optional)
+```
 
-## 🚨 Important Notes
+### Alternative Platforms
+- **Netlify** - Static site generation
+- **Railway** - Full-stack deployment  
+- **AWS Amplify** - AWS ecosystem
+- **DigitalOcean** - App Platform
 
-- This is a demo application for educational purposes
-- Not financial advice - trade at your own risk
-- Wallet connections are secure but audit smart contracts
-- API keys should be kept secure in production
+## 🧪 Development
+
+### Add UI Components
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+npx shadcn@latest add dropdown-menu
+```
+
+### Development Commands
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript validation
+```
+
+### Code Quality
+- **TypeScript** for type safety
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **Husky** for git hooks (optional)
+
+## 🔒 Security & Best Practices
+
+### Wallet Security
+- ✅ Secure wallet connection protocols
+- ✅ No private key handling in frontend
+- ✅ Read-only wallet operations for portfolio tracking
+- ⚠️ Always verify smart contract interactions
+
+### API Security
+- ✅ CORS configuration
+- ✅ Rate limiting (recommended for production)
+- ✅ Input validation
+- ✅ Secure environment variables
+
+### Authentication
+- ✅ NextAuth.js secure session management
+- ✅ JWT tokens with expiration
+- ✅ Protected route middleware
+- ✅ Wallet signature verification
+
+## 🚨 Important Disclaimers
+
+- **Educational Purpose**: This is a demo application for learning
+- **Not Financial Advice**: All information is for educational purposes only
+- **Trade Responsibly**: Cryptocurrency trading involves significant risk
+- **Audit Smart Contracts**: Always verify contract addresses and code
+- **Secure Your Wallet**: Keep private keys and seed phrases safe
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+### Getting Started
+1. Fork the repository on GitHub
+2. Clone your fork locally
+3. Create a feature branch
+4. Make your changes with tests
+5. Submit a pull request with clear description
+
+### Contribution Guidelines
+- Follow TypeScript best practices
+- Use existing UI components when possible
+- Add proper error handling
+- Include relevant documentation
+- Test wallet connections thoroughly
+
+### Development Workflow
+```bash
+git checkout -b feature/your-feature-name
+# Make your changes
+git add .
+git commit -m "feat: add your feature description"
+git push origin feature/your-feature-name
+# Create pull request on GitHub
+```
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## 📞 Support
+## 📞 Support & Community
 
-For questions or issues:
-- Open a GitHub issue
-- Check the documentation
-- Join our Discord community
+### Get Help
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/username/cryptoweb/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/username/cryptoweb/discussions)
+- 📖 **Documentation**: Check `/docs` folder for detailed guides
+- 💬 **Community**: Join our Discord server
+
+### Roadmap
+- [ ] Advanced trading features
+- [ ] More wallet integrations
+- [ ] Mobile application
+- [ ] DeFi protocol integrations
+- [ ] Advanced charting tools
 
 ---
 
-Built with ❤️ using Next.js and modern web technologies.
+**Built with ❤️ using Next.js, TypeScript, and modern Web3 technologies.**
+
+*Professional crypto trading platform for the modern investor.*
