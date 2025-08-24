@@ -1,79 +1,66 @@
 import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabaseClient'
+import type { ArticleCard } from '@/types/article'
 
 const mockNewsItems = [
   {
     id: '1',
+    slug: 'bitcoin-etf-record-inflows',
     title: 'Bitcoin ETF Sees Record $2.3B Weekly Inflows as Institutional Adoption Accelerates',
-    url: 'https://example.com/bitcoin-etf-record-inflows',
-    source: 'CryptoFinance News',
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    excerpt: 'Institutional adoption accelerates as Bitcoin ETFs see unprecedented weekly inflows, marking a new milestone in crypto mainstream acceptance.',
+    category: 'CryptoFinance News',
+    published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
     id: '2',
+    slug: 'layer2-15b-tvl',
     title: 'Ethereum Layer 2 Ecosystem Reaches $15B TVL Milestone with 300% Growth',
-    url: 'https://example.com/ethereum-layer2-milestone',
-    source: 'DeFi Weekly',
-    publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+    excerpt: 'Layer2 momentum continues as the Ethereum scaling ecosystem reaches new heights with massive TVL growth.',
+    category: 'DeFi Weekly',
+    published_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
   },
   {
     id: '3',
+    slug: 'sec-crypto-regulations-q2',
     title: 'SEC Chairman Signals Clearer Crypto Regulations Coming in Q2 2024',
-    url: 'https://example.com/sec-crypto-regulations-q2',
-    source: 'Regulatory Monitor',
-    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    excerpt: 'Regulatory clarity may be coming as SEC chairman indicates new frameworks for cryptocurrency oversight.',
+    category: 'Regulatory Monitor',
+    published_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
   },
   {
     id: '4',
+    slug: 'solana-throughput-upgrade',
     title: 'Solana Network Upgrade Improves Throughput by 40%',
-    url: 'https://example.com/solana-network-upgrade',
-    source: 'Tech Analytics',
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+    excerpt: 'Performance improvements land on Solana mainnet, delivering significant throughput enhancements.',
+    category: 'Tech Analytics',
+    published_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
   },
-  {
-    id: '5',
-    title: 'Global Crypto Market Cap Reaches New All-Time High of $2.8T',
-    url: 'https://example.com/crypto-market-cap-ath',
-    source: 'Market Intelligence',
-    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-  },
-  {
-    id: '6',
-    title: 'Major DeFi Protocol Launches Cross-Chain Bridge with $500M TVL',
-    url: 'https://example.com/defi-cross-chain-bridge',
-    source: 'DeFi Insights',
-    publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), // 18 hours ago
-  },
-  {
-    id: '7',
-    title: 'Central Bank Digital Currencies: 15 Countries Launch Pilot Programs',
-    url: 'https://example.com/cbdc-pilot-programs',
-    source: 'Global Finance',
-    publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-  },
-  {
-    id: '8',
-    title: 'Bitcoin Mining Operations Report Record Efficiency Gains',
-    url: 'https://example.com/bitcoin-mining-efficiency',
-    source: 'Mining Weekly',
-    publishedAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(), // 30 hours ago
-  },
-  {
-    id: '9',
-    title: 'Artificial Intelligence Meets DeFi: New Protocol Automates Yield Farming',
-    url: 'https://example.com/ai-defi-yield-farming',
-    source: 'Innovation Today',
-    publishedAt: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(), // 36 hours ago
-  }
 ]
 
 export async function GET() {
   try {
-    // In production, this would fetch from a real news API
-    // For now, return curated mock data
+    // Try to fetch from Supabase first
+    const { data, error } = await supabase
+      .from('articles')
+      .select('id, slug, title, excerpt, category, published_at')
+      .eq('is_published', true)
+      .order('published_at', { ascending: false }) // Berita terbaru di depan
+      .limit(30);
+
+    if (error) {
+      console.error('Supabase error:', error);
+    }
+
+    const items = (data ?? []) as ArticleCard[];
+
+    // If no data from Supabase, use mock data
+    const newsItems = items.length > 0 ? items : mockNewsItems;
+
     return NextResponse.json({
-      items: mockNewsItems,
-      total: mockNewsItems.length,
-      lastUpdated: new Date().toISOString()
+      items: newsItems,
+      total: newsItems.length,
+      lastUpdated: new Date().toISOString(),
+      source: items.length > 0 ? 'supabase' : 'mock'
     }, {
       headers: {
         'Content-Type': 'application/json',
