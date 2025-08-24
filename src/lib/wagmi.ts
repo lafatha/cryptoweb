@@ -31,6 +31,8 @@ export const config = createConfig({
     [polygon.id]: http(),
     [bsc.id]: http(),
   },
+  // Disable persistence to force clean state on disconnect
+  storage: null,
 })
 
 declare module 'wagmi' {

@@ -1,33 +1,30 @@
 'use client'
-import { useConnect } from 'wagmi'
+import { useConnect, useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 
 export function MetaMaskBtn() {
   const { connect, connectors, error } = useConnect()
+  const { isConnected } = useAccount()
   const metamask = connectors.find(c => c.id === 'injected') // MetaMask
 
   const handleConnect = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     
+    // Jika sudah connected, jangan connect lagi
+    if (isConnected) {
+      return
+    }
+    
     try {
       if (metamask) {
-        const loadingToast = toast.loading('Connecting to MetaMask...', {
-          duration: 10000 // Will be dismissed manually
-        })
         connect({ connector: metamask })
-        // Note: success toast will be shown by WalletConnectModal
+        // Note: tidak ada toast notification
       } else {
-        toast.error('MetaMask not detected. Please install MetaMask extension.', {
-          duration: 4000
-        })
+        console.error('MetaMask not detected')
       }
     } catch (error) {
       console.error('MetaMask connection error:', error)
-      toast.error('Failed to connect to MetaMask', {
-        duration: 4000
-      })
     }
   }
 

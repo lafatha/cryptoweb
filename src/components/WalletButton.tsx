@@ -6,7 +6,6 @@ import { mainnet, polygon, bsc } from 'wagmi/chains'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
 import { Copy, Network, MessageSquare, LogOut, ChevronDown } from 'lucide-react'
 
 const chainConfig = {
@@ -16,7 +15,7 @@ const chainConfig = {
 }
 
 interface WalletButtonProps {
-  onConnect: () => void
+  onConnect?: () => void // Make optional
 }
 
 export function WalletButton({ onConnect }: WalletButtonProps) {
@@ -26,6 +25,7 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
   const { switchChain } = useSwitchChain()
   const { signMessage } = useSignMessage()
   const [isMobile, setIsMobile] = useState(false)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768)
@@ -33,6 +33,23 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Debug log untuk memonitor state changes
+  useEffect(() => {
+    console.log('WalletButton state changed:', { 
+      isConnected, 
+      address: address || 'null', 
+      chain: chain?.name || 'null' 
+    })
+  }, [isConnected, address, chain])
+
+  // Monitor disconnect events
+  useEffect(() => {
+    if (!isConnected && !address) {
+      console.log('Wallet has been disconnected - state cleared')
+      setIsDisconnecting(false)
+    }
+  }, [isConnected, address])
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
@@ -47,35 +64,49 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
   const copyAddress = async () => {
     if (address) {
       await navigator.clipboard.writeText(address)
-      toast.success('Address copied to clipboard')
+      // Tidak ada toast notification
     }
   }
 
   const handleSwitchNetwork = (chainId: number) => {
-    switchChain({ chainId })
+    switchChain({ chainId: chainId as 1 | 137 | 56 })
   }
 
   const handleSignMessage = async () => {
     try {
       const message = 'Hello from CryptoFinance!'
       const signature = await signMessage({ message })
-      toast.success('Message signed successfully!')
       console.log('Signature:', signature)
     } catch (error) {
-      toast.error('Failed to sign message')
       console.error('Sign message error:', error)
     }
   }
 
-  const handleDisconnect = () => {
-    disconnect()
-    toast.success('Wallet disconnected')
+  const handleDisconnect = async () => {
+    try {
+      setIsDisconnecting(true)
+      console.log('Disconnecting wallet...')
+      
+      // Call disconnect
+      disconnect()
+      
+      console.log('Disconnect called successfully')
+    } catch (error) {
+      console.error('Disconnect error:', error)
+      setIsDisconnecting(false)
+    }
   }
 
-  if (!isConnected) {
+  // Early return jika tidak ada address dan tidak connected, atau sedang disconnecting
+  if (!isConnected || !address || isDisconnecting) {
     return (
-      <Button onClick={onConnect} variant="outline" size="sm">
-        Connect Wallet
+      <Button 
+        onClick={onConnect || (() => {})} 
+        variant="outline" 
+        size="sm"
+        disabled={isDisconnecting}
+      >
+        {isDisconnecting ? 'Disconnecting...' : 'Connect Wallet'}
       </Button>
     )
   }
@@ -159,7 +190,7 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
 
         <DropdownMenuItem onClick={handleDisconnect} className="text-red-600">
           <LogOut className="w-4 h-4 mr-2" />
-          Disconnect
+          {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
+import { useAccount } from "wagmi"
 import { Menu, TrendingUp, LogIn, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -20,6 +21,7 @@ const navItems = [
 
 export function Navbar() {
   const { data: session, status } = useSession()
+  const { isConnected } = useAccount()
   const [showWalletModal, setShowWalletModal] = useState(false)
 
   return (
@@ -56,8 +58,10 @@ export function Navbar() {
 
         {/* Right side - Auth, Wallet, Theme toggle and mobile menu */}
         <div className="flex items-center space-x-2">
-          {/* Wallet Button */}
-          <WalletButton onConnect={() => setShowWalletModal(true)} />
+          {/* Wallet Button - tampil jika ada session ATAU wallet connected */}
+          {(session || isConnected) && (
+            <WalletButton onConnect={() => setShowWalletModal(true)} />
+          )}
           
           {/* Authentication */}
           {status === "loading" ? (
@@ -84,12 +88,12 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
+          ) : !isConnected ? (
             <Button onClick={() => setShowWalletModal(true)} size="sm">
               <LogIn className="h-4 w-4 mr-2" />
               Connect
             </Button>
-          )}
+          ) : null}
 
           <ModeToggle />
           
@@ -130,9 +134,12 @@ export function Navbar() {
                   </>
                 )}
                 {!session && (
-                  <Link href="/auth/signin" className="text-sm font-medium transition-colors hover:text-primary">
-                    Sign In
-                  </Link>
+                  <button 
+                    onClick={() => setShowWalletModal(true)}
+                    className="text-sm font-medium transition-colors hover:text-primary text-left"
+                  >
+                    Connect
+                  </button>
                 )}
               </nav>
             </SheetContent>

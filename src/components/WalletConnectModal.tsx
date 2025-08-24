@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Wallet, Mail } from 'lucide-react'
 import { MetaMaskBtn } from '@/components/MetaMaskBtn'
-import { toast } from 'sonner'
 
 interface WalletConnectModalProps {
   isOpen: boolean
@@ -20,9 +19,7 @@ function WalletConnectBtn() {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    toast.info('WalletConnect integration coming soon!', {
-      duration: 2000
-    })
+    console.log('WalletConnect integration coming soon!')
   }
 
   return (
@@ -49,9 +46,7 @@ function CoinbaseBtn() {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    toast.info('Coinbase Wallet integration coming soon!', {
-      duration: 2000
-    })
+    console.log('Coinbase Wallet integration coming soon!')
   }
 
   return (
@@ -79,13 +74,7 @@ export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConn
   // Handle successful wallet connection
   useEffect(() => {
     if (isConnected && address && isOpen) {
-      // Dismiss any loading toasts
-      toast.dismiss()
-      // Show success message
-      toast.success('Wallet connected successfully!', { 
-        duration: 2000 
-      })
-      // Close modal
+      // Close modal tanpa toast
       setTimeout(() => {
         onClose()
       }, 500)
