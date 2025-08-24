@@ -1,36 +1,192 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CryptoFinance - Professional Crypto Trading Platform
 
-## Getting Started
+A modern, professional cryptocurrency trading platform built with Next.js 14, featuring real-time market data, wallet integration, and AI-powered financial advice.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Real-time Market Data** - Live cryptocurrency prices via CoinGecko API
+- **Wallet Integration** - Support for MetaMask, WalletConnect, and Coinbase Wallet
+- **Authentication** - Email/password and wallet-based authentication
+- **Portfolio Management** - Track holdings across multiple blockchains
+- **AI Financial Advisor** - Chat-based crypto investment advice
+- **Professional UI** - Bloomberg-inspired minimalistic design
+- **Multi-chain Support** - Ethereum, Polygon, and BSC networks
+- **News Feed** - Curated cryptocurrency news and insights
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Authentication**: NextAuth.js
+- **Wallet**: wagmi v2 + viem + WalletConnect v2
+- **Charts**: Recharts
+- **Animations**: Framer Motion
+- **API**: CoinGecko for market data
+
+## 📋 Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- A WalletConnect Project ID (free at [walletconnect.com](https://walletconnect.com))
+
+## ⚡ Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd crypto-dashboard
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env.local` file in the root directory:
+   ```bash
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-secret-key-here
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🔐 Authentication
+
+### Demo Account
+- **Email**: `demo@cryptofinance.app`
+- **Password**: `demo123!`
+
+### Wallet Authentication
+Connect with any supported wallet:
+- MetaMask
+- WalletConnect (any WC-compatible wallet)
+- Coinbase Wallet
+
+## 📱 Usage
+
+### Markets
+- View real-time cryptocurrency prices
+- Sort and search through 100+ cryptocurrencies
+- Click on any asset for detailed charts
+
+### Portfolio (Protected)
+- Requires authentication (email or wallet)
+- Add wallet addresses to track holdings
+- View portfolio allocation and performance
+
+### AI Advisor (Protected)
+- Chat-based financial advice
+- Portfolio-aware recommendations
+- Market insights and analysis
+
+### News
+- Curated cryptocurrency news
+- Bloomberg-style minimalistic layout
+- Real-time updates
+
+## 🏗 Project Structure
+
+```
+src/
+├── app/                    # Next.js app router pages
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication pages
+│   ├── dashboard/         # Protected dashboard pages
+│   └── markets/           # Market data pages
+├── components/            # React components
+│   ├── ui/               # shadcn/ui components
+│   └── ...               # Custom components
+├── lib/                  # Utility libraries
+│   ├── auth.ts           # NextAuth configuration
+│   ├── coingecko.ts      # CoinGecko API client
+│   └── wagmi.ts          # Wallet configuration
+└── hooks/                # Custom React hooks
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### WalletConnect Setup
+1. Go to [WalletConnect Cloud](https://cloud.walletconnect.com)
+2. Create a new project
+3. Copy your Project ID
+4. Add it to your `.env.local` file
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### CoinGecko API (Optional)
+For production with higher rate limits:
+1. Get an API key from [CoinGecko](https://coingecko.com/api)
+2. Add `COINGECKO_API_KEY=your_key` to `.env.local`
 
-## Learn More
+## 📊 API Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `GET /api/news` - Fetch cryptocurrency news
+- `POST /api/wallet-login` - Wallet authentication
+- `GET|POST /api/auth/[...nextauth]` - NextAuth endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔄 Development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Adding New Components
+```bash
+npx shadcn@latest add [component-name]
+```
 
-## Deploy on Vercel
+### Running Tests
+```bash
+npm run test
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Building for Production
+```bash
+npm run build
+npm start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌐 Deployment
+
+### Vercel (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on push
+
+### Other Platforms
+The app can be deployed to any platform supporting Next.js:
+- Netlify
+- Railway
+- AWS Amplify
+- DigitalOcean App Platform
+
+## 🚨 Important Notes
+
+- This is a demo application for educational purposes
+- Not financial advice - trade at your own risk
+- Wallet connections are secure but audit smart contracts
+- API keys should be kept secure in production
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 📞 Support
+
+For questions or issues:
+- Open a GitHub issue
+- Check the documentation
+- Join our Discord community
+
+---
+
+Built with ❤️ using Next.js and modern web technologies.
