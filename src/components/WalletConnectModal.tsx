@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useConnect, useAccount } from 'wagmi'
-import { signIn } from 'next-auth/react'
+import { useEffect } from 'react'
+import { useAccount } from 'wagmi'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { X, Wallet, Mail } from 'lucide-react'
+import { Wallet, Mail } from 'lucide-react'
+import { MetaMaskBtn } from '@/components/MetaMaskBtn'
+import { toast } from 'sonner'
 
 interface WalletConnectModalProps {
   isOpen: boolean
@@ -14,92 +15,83 @@ interface WalletConnectModalProps {
   onEmailClick: () => void
 }
 
-const walletOptions = [
-  {
-    id: 'injected',
-    name: 'MetaMask',
-    description: 'Connect using browser wallet',
-    icon: '🦊',
-  },
-  {
-    id: 'walletConnect',
-    name: 'WalletConnect',
-    description: 'Scan with wallet to connect',
-    icon: '🔗',
-  },
-  {
-    id: 'walletConnect',
-    name: 'Talisman',
-    description: 'Connect with Talisman wallet',
-    icon: '🔮',
-  },
-  {
-    id: 'coinbaseWallet',
-    name: 'Coinbase Wallet',
-    description: 'Connect with Coinbase Wallet',
-    icon: '🟦',
-  },
-]
+// Komponen untuk WalletConnect dengan Coming Soon
+function WalletConnectBtn() {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toast.info('WalletConnect integration coming soon!', {
+      duration: 2000
+    })
+  }
+
+  return (
+    <Button
+      type="button"
+      onClick={handleClick}
+      className="w-full rounded-xl px-4 py-3 h-12 justify-start"
+      variant="outline"
+    >
+      <span className="text-lg mr-3">🔗</span>
+      <div className="flex-1 text-left">
+        <div className="font-medium">WalletConnect</div>
+        <div className="text-xs text-muted-foreground">Scan with wallet to connect</div>
+      </div>
+      <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+        Coming Soon
+      </div>
+    </Button>
+  )
+}
+
+// Komponen untuk Coinbase dengan Coming Soon
+function CoinbaseBtn() {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toast.info('Coinbase Wallet integration coming soon!', {
+      duration: 2000
+    })
+  }
+
+  return (
+    <Button
+      type="button"
+      onClick={handleClick}
+      className="w-full rounded-xl px-4 py-3 h-12 justify-start"
+      variant="outline"
+    >
+      <span className="text-lg mr-3">🟦</span>
+      <div className="flex-1 text-left">
+        <div className="font-medium">Coinbase Wallet</div>
+        <div className="text-xs text-muted-foreground">Connect with Coinbase Wallet</div>
+      </div>
+      <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+        Coming Soon
+      </div>
+    </Button>
+  )
+}
 
 export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConnectModalProps) {
-  const [isConnecting, setIsConnecting] = useState<string | null>(null)
-  const { connect, connectors, error } = useConnect()
   const { isConnected, address } = useAccount()
 
   // Handle successful wallet connection
   useEffect(() => {
-    if (isConnected && address && isConnecting) {
-      handleWalletLogin(address)
-    }
-  }, [isConnected, address, isConnecting])
-
-  const handleWalletLogin = async (walletAddress: string) => {
-    try {
-      // In production, you would:
-      // 1. Generate a nonce on the server
-      // 2. Have user sign the message with the nonce
-      // 3. Verify the signature on the server
-      // 4. Create a session
-
-      // For demo, we'll just create a session with the address
-      const result = await signIn('wallet', {
-        address: walletAddress,
-        signature: 'demo-signature', // In production, this would be a real signature
-        message: `Login with wallet — nonce: ${Date.now()}`,
-        redirect: false,
+    if (isConnected && address && isOpen) {
+      // Dismiss any loading toasts
+      toast.dismiss()
+      // Show success message
+      toast.success('Wallet connected successfully!', { 
+        duration: 2000 
       })
-
-      if (result?.ok) {
+      // Close modal
+      setTimeout(() => {
         onClose()
-      } else {
-        console.error('Wallet login failed:', result?.error)
-      }
-    } catch (error) {
-      console.error('Wallet login error:', error)
-    } finally {
-      setIsConnecting(null)
+      }, 500)
+      console.log('Wallet connected:', address)
     }
-  }
-
-  const handleConnect = async (connectorId: string) => {
-    try {
-      setIsConnecting(connectorId)
-      
-      const connector = connectors.find(c => {
-        if (connectorId === 'injected') return c.id === 'injected'
-        if (connectorId === 'walletConnect') return c.id === 'walletConnect'
-        if (connectorId === 'coinbaseWallet') return c.id === 'coinbaseWallet'
-        return false
-      })
-
-      if (connector) {
-        connect({ connector })
-      }
-    } catch (error) {
-      console.error('Connection error:', error)
-      setIsConnecting(null)
-    }
-  }
+  }, [isConnected, address, isOpen, onClose])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -117,52 +109,22 @@ export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConn
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader className="flex flex-row items-center justify-between">
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Wallet className="h-4 w-4 text-primary" />
             </div>
             <DialogTitle>Connect with your wallet</DialogTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-6 w-6 rounded-md"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Wallet Options */}
-          <div className="space-y-2">
-            {walletOptions.map((wallet) => (
-              <Button
-                key={`${wallet.id}-${wallet.name}`}
-                variant="outline"
-                className="w-full justify-start h-12 text-left"
-                onClick={() => handleConnect(wallet.id)}
-                disabled={isConnecting === wallet.id}
-              >
-                <span className="text-lg mr-3">{wallet.icon}</span>
-                <div className="flex-1">
-                  <div className="font-medium">{wallet.name}</div>
-                  <div className="text-xs text-muted-foreground">{wallet.description}</div>
-                </div>
-                {isConnecting === wallet.id && (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                )}
-              </Button>
-            ))}
+          <div className="space-y-3">
+            <MetaMaskBtn />
+            <WalletConnectBtn />
+            <CoinbaseBtn />
           </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950 p-3 rounded-lg">
-              {error.message}
-            </div>
-          )}
 
           {/* Divider */}
           <div className="relative">
@@ -176,6 +138,7 @@ export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConn
 
           {/* Email Option */}
           <Button
+            type="button"
             variant="default"
             className="w-full h-12"
             onClick={onEmailClick}
