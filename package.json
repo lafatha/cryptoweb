@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "admin:hash": "node scripts/generate-hash.js",
+    "admin:verify": "node scripts/verify-setup.js"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.3.7",
@@ -25,11 +27,14 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@supabase/supabase-js": "^2.56.0",
     "@tanstack/react-query": "^5.85.5",
+    "@types/bcryptjs": "^2.4.6",
     "@walletconnect/modal": "^2.7.0",
     "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
+    "jose": "^6.0.13",
     "lucide-react": "^0.541.0",
     "next": "15.5.0",
     "next-auth": "^4.24.11",

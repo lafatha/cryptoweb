@@ -32,8 +32,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -94,7 +92,7 @@ bower_components
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+
 
 # parcel-bundler cache
 .cache
