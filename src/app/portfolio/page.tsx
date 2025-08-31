@@ -24,11 +24,13 @@ import {
   AlertCircle,
   Network,
   DollarSign,
-  Settings
+  Settings,
+  Bot
 } from "lucide-react"
 import { WalletButton } from "@/components/WalletButton"
 import { WalletConnectModal } from "@/components/WalletConnectModal"
 import { CryptoIcon } from "@/components/crypto-icon"
+import AgentDock from "@/components/AgentDock"
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from 'recharts'
 
 // ERC20 ABI untuk membaca balance dan decimals
@@ -96,6 +98,7 @@ export default function PortfolioPage() {
   const [selectedAsset, setSelectedAsset] = useState<TokenBalance | null>(null)
   const [coinPrices, setCoinPrices] = useState<Record<string, any>>({})
   const [chartLoading, setChartLoading] = useState(false)
+  const [showAgentDock, setShowAgentDock] = useState(false)
 
   // Fetch portfolio data when wallet is connected
   useEffect(() => {
@@ -754,6 +757,15 @@ export default function PortfolioPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* AI Agent Dock */}
+        {isConnected && (
+          <AgentDock
+            portfolioData={portfolioData?.holdings || []}
+            isOpen={showAgentDock}
+            onToggle={() => setShowAgentDock(!showAgentDock)}
+          />
+        )}
       </div>
     </>
   )

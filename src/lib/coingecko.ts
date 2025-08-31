@@ -278,3 +278,92 @@ export function formatLargeNumber(num: number): string {
   if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`
   return num.toFixed(2)
 }
+
+// Additional interfaces for AI Agent
+export interface TrendingCoin {
+  id: string
+  coin_id: number
+  name: string
+  symbol: string
+  market_cap_rank: number
+  thumb: string
+  small: string
+  large: string
+  slug: string
+  price_btc: number
+}
+
+export interface CoinPrice {
+  id: string
+  symbol: string
+  name: string
+  current_price: number
+  price_change_percentage_24h: number
+  market_cap: number
+  market_cap_rank: number
+}
+
+// Additional functions for AI Agent
+export async function fetchCoinPrices(coinIds: string[]): Promise<CoinPrice[]> {
+  try {
+    const response = await fetch(`${COINGECKO_API_BASE}/coins/markets`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-CG-Demo-API-Key': process.env.coingecko || 'CG-HoQRu1u55WSQMiR1o4uhuUsS'
+      },
+      next: { revalidate: 60 }
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const params = new URLSearchParams({
+      vs_currency: 'usd',
+      ids: coinIds.join(','),
+      order: 'market_cap_desc',
+      per_page: '100',
+      page: '1',
+      sparkline: 'false',
+      price_change_percentage: '24h'
+    })
+
+    const url = `${COINGECKO_API_BASE}/coins/markets?${params}`
+    const marketResponse = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'X-CG-Demo-API-Key': process.env.coingecko || 'CG-HoQRu1u55WSQMiR1o4uhuUsS'
+      },
+      next: { revalidate: 60 }
+    })
+
+    const data = await marketResponse.json()
+    return data || []
+  } catch (error) {
+    console.error('Error fetching coin prices:', error)
+    return []
+  }
+}
+
+export async function fetchTrendingCoins(): Promise<TrendingCoin[]> {
+  try {
+    const response = await fetch(`${COINGECKO_API_BASE}/search/trending`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-CG-Demo-API-Key': process.env.coingecko || 'CG-HoQRu1u55WSQMiR1o4uhuUsS'
+      },
+      next: { revalidate: 300 } // Cache for 5 minutes
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.coins?.map((item: any) => item.item) || []
+  } catch (error) {
+    console.error('Error fetching trending coins:', error)
+    return []
+  }
+}

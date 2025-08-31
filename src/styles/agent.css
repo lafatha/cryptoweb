@@ -1,0 +1,185 @@
+/* AI Agent Dock Styles */
+.agent-dock {
+  --agent-primary: #2563eb;
+  --agent-primary-hover: #1d4ed8;
+  --agent-border: #e5e7eb;
+  --agent-text: #374151;
+  --agent-muted: #6b7280;
+  --agent-background: #ffffff;
+  --agent-card: #f9fafb;
+}
+
+[data-theme="dark"] .agent-dock,
+.dark .agent-dock {
+  --agent-primary: #3b82f6;
+  --agent-primary-hover: #2563eb;
+  --agent-border: #374151;
+  --agent-text: #f3f4f6;
+  --agent-muted: #9ca3af;
+  --agent-background: #1f2937;
+  --agent-card: #111827;
+}
+
+/* Floating button animation */
+.agent-fab {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+}
+
+.agent-fab:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Chat bubble animations */
+.chat-message {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Severity indicators */
+.severity-info {
+  --severity-color: #3b82f6;
+}
+
+.severity-warning {
+  --severity-color: #f59e0b;
+}
+
+.severity-danger {
+  --severity-color: #ef4444;
+}
+
+/* Insight cards */
+.insight-card {
+  border-left: 4px solid var(--severity-color, #3b82f6);
+  transition: all 0.2s ease;
+}
+
+.insight-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth scroll for chat */
+.chat-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .agent-dock-panel {
+    width: calc(100vw - 2rem);
+    max-width: 380px;
+  }
+  
+  .agent-fab {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Accessibility improvements */
+.agent-dock button:focus-visible {
+  outline: 2px solid var(--agent-primary);
+  outline-offset: 2px;
+}
+
+.agent-dock input:focus-visible {
+  outline: 2px solid var(--agent-primary);
+  outline-offset: 2px;
+}
+
+/* Dark mode specific adjustments */
+.dark .insight-card {
+  background-color: rgba(17, 24, 39, 0.5);
+  border-color: rgba(55, 65, 81, 0.8);
+}
+
+.dark .chat-message.user {
+  background-color: var(--agent-primary);
+}
+
+.dark .chat-message.assistant {
+  background-color: rgba(55, 65, 81, 0.8);
+}
+
+/* Notification styles */
+.notification-banner {
+  background: linear-gradient(90deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  animation: slideDown 0.3s ease-out;
+}
+
+.dark .notification-banner {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

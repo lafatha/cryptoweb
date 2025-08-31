@@ -129,20 +129,104 @@ export function AIChat() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate AI thinking time
-    setTimeout(() => {
-      const response = getAIResponse(content)
+    try {
+      // Call the real API
+      const response = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'user', content: content.trim() }
+          ],
+          context: {
+            topHoldings: [], // Could be populated from portfolio data
+            marketBrief: "Pasar crypto sedang dinamis dengan volatilitas tinggi"
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('No response body')
+      }
+
+      let assistantContent = ""
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: response.content,
-        timestamp: new Date(),
-        suggestions: response.suggestions
+        content: "",
+        timestamp: new Date()
       }
 
+      // Add the message immediately so we can update it
       setMessages(prev => [...prev, assistantMessage])
+
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') {
+              setIsTyping(false)
+              return
+            }
+
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.content) {
+                assistantContent += parsed.content
+                // Update the message content
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: assistantContent }
+                    : msg
+                ))
+              } else if (parsed.error) {
+                throw new Error(parsed.message || 'Chat error')
+              }
+            } catch (e) {
+              // Skip invalid JSON
+              continue
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Chat error:', error)
+      
+      // Fallback to mock response
+      const mockResponse = getAIResponse(content)
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: `🤖 Maaf, terjadi gangguan koneksi. Berikut respons sementara:\n\n${mockResponse.content}`,
+        timestamp: new Date(),
+        suggestions: mockResponse.suggestions
+      }
+
+      setMessages(prev => {
+        // Remove the empty message if it exists and add the fallback
+        const filtered = prev.filter(msg => msg.content !== "")
+        return [...filtered, assistantMessage]
+      })
+    } finally {
       setIsTyping(false)
-    }, 1500 + Math.random() * 2000) // Random delay for realism
+    }
   }
 
   const handleSuggestionClick = (suggestion: string) => {
