@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MarketTicker } from "@/components/market-ticker"
+import HeroSection from "@/components/HeroSection"
 import { ArrowRight, BarChart3, TrendingUp, Shield, Plus, HelpCircle, Bot, Wallet } from "lucide-react"
 
 const features = [
@@ -65,39 +66,8 @@ export default function Home() {
       {/* Market Ticker */}
       <MarketTicker />
       
-      {/* Hero Section */}
-      <section className="container max-w-6xl mx-auto px-4 py-16 md:py-24">
-        <div className="flex flex-col items-center text-center space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6"
-          >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              AI-Powered
-              <span className="block text-primary">Crypto Portfolio Tracker</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto">
-              Track all your holdings across wallets, exchanges, and manual entries with live data and AI insights.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex justify-center"
-          >
-            <Button asChild size="lg" className="text-lg px-8">
-              <Link href="/portfolio">
-                Start Tracking
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section dengan Chat */}
+      <HeroSection />
 
       {/* Features Section */}
       <section className="container max-w-6xl mx-auto px-4 py-20">
