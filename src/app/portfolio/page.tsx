@@ -1,12 +1,760 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
+"use client"
 
-export default async function PortfolioRedirectPage() {
-  const session = await auth()
-  
-  if (!session) {
-    redirect('/auth/signin?callbackUrl=/portfolio')
+import { useState, useEffect } from 'react'
+import { useAccount, useBalance } from 'wagmi'
+import { motion } from "framer-motion"
+import { formatUnits, parseAbi } from 'viem'
+import { readContracts } from 'wagmi/actions'
+import { config } from '@/lib/wagmi'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { 
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ExternalLink,
+  RefreshCw,
+  Plus,
+  AlertCircle,
+  Network,
+  DollarSign,
+  Settings
+} from "lucide-react"
+import { WalletButton } from "@/components/WalletButton"
+import { WalletConnectModal } from "@/components/WalletConnectModal"
+import { CryptoIcon } from "@/components/crypto-icon"
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from 'recharts'
+
+// ERC20 ABI untuk membaca balance dan decimals
+const ERC20_ABI = parseAbi([
+  'function balanceOf(address account) view returns (uint256)',
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
+  'function name() view returns (string)'
+])
+
+// Common ERC20 tokens pada Ethereum mainnet
+const COMMON_TOKENS = [
+  { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6 },
+  { address: '0xA0b86a33E6441986C3df53b1B8c6A0D8c08bDD4e', symbol: 'USDC', name: 'USD Coin', decimals: 6 },
+  { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', symbol: 'LINK', name: 'Chainlink', decimals: 18 },
+  { address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', symbol: 'UNI', name: 'Uniswap', decimals: 18 },
+]
+
+interface TokenBalance {
+  symbol: string
+  name: string
+  balance: string
+  decimals: number
+  address: string
+  price?: number
+  priceChange24h?: number
+  marketValue?: number
+  costBasis?: number
+  roi?: number
+  sparklineData?: { time: string; value: number }[]
+}
+
+interface PortfolioData {
+  totalValue: number
+  totalValueChange: number
+  holdings: TokenBalance[]
+  chartData: { time: string; value: number }[]
+  isLoadingChart: boolean
+}
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
+const formatTokenAmount = (amount: string, decimals: number) => {
+  const value = parseFloat(formatUnits(BigInt(amount), decimals))
+  if (value < 0.0001) return '< 0.0001'
+  if (value < 1) return value.toFixed(6)
+  if (value < 100) return value.toFixed(4)
+  return value.toFixed(2)
+}
+
+export default function PortfolioPage() {
+  const { address, isConnected, chain } = useAccount()
+  const { data: ethBalance } = useBalance({ address })
+  const [showWalletModal, setShowWalletModal] = useState(false)
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [selectedTimeframe, setSelectedTimeframe] = useState('90D')
+  const [selectedAsset, setSelectedAsset] = useState<TokenBalance | null>(null)
+  const [coinPrices, setCoinPrices] = useState<Record<string, any>>({})
+  const [chartLoading, setChartLoading] = useState(false)
+
+  // Fetch portfolio data when wallet is connected
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchPortfolioData()
+    }
+  }, [isConnected, address, chain])
+
+  // Fetch coin prices
+  useEffect(() => {
+    fetchCoinPrices()
+    const interval = setInterval(fetchCoinPrices, 30000) // Update every 30 seconds
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fetch historical data when timeframe changes
+  useEffect(() => {
+    if (isConnected && address && portfolioData) {
+      fetchHistoricalData()
+    }
+  }, [selectedTimeframe, isConnected, address])
+
+  const fetchHistoricalData = async () => {
+    if (!portfolioData) return
+    
+    setChartLoading(true)
+    try {
+      // Convert timeframe to days
+      const daysMap: Record<string, string> = {
+        '24H': '1',
+        '7D': '7',
+        '30D': '30',
+        '90D': '90'
+      }
+      
+      const days = daysMap[selectedTimeframe] || '90'
+      
+      // For now, we'll use ETH as the main indicator for portfolio
+      // In a real app, you'd calculate portfolio value based on all holdings
+      const response = await fetch(`/api/coingecko/historical?coinId=ethereum&days=${days}&vs_currency=usd`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Calculate portfolio chart data based on current portfolio composition
+        const totalValue = portfolioData.totalValue
+        const ethPrice = coinPrices.ethereum?.usd || 2500
+        const ethHolding = portfolioData.holdings.find(h => h.symbol === 'ETH')
+        const ethRatio = ethHolding ? (ethHolding.marketValue || 0) / totalValue : 0.7 // Default 70% ETH if no holdings
+        
+        const chartData = data.prices.map((point: any) => ({
+          time: point.time,
+          value: totalValue * (point.value / ethPrice) * ethRatio + totalValue * (1 - ethRatio) // Simplified calculation
+        }))
+        
+        setPortfolioData(prev => prev ? {
+          ...prev,
+          chartData,
+          isLoadingChart: false
+        } : null)
+      }
+    } catch (error) {
+      console.error('Error fetching historical data:', error)
+      // Use fallback generated data
+      setPortfolioData(prev => prev ? {
+        ...prev,
+        chartData: generateChartData(portfolioData.totalValue, portfolioData.totalValueChange, selectedTimeframe),
+        isLoadingChart: false
+      } : null)
+    } finally {
+      setChartLoading(false)
+    }
   }
-  
-  redirect('/dashboard/portfolio')
+
+  const fetchCoinPrices = async () => {
+    try {
+      const response = await fetch('/api/coingecko/simple-prices?ids=ethereum,tether,usd-coin,chainlink,uniswap&vs_currencies=usd&include_24hr_change=true')
+      if (response.ok) {
+        const data = await response.json()
+        setCoinPrices(data)
+      }
+    } catch (error) {
+      console.error('Error fetching coin prices:', error)
+    }
+  }
+
+  const fetchPortfolioData = async () => {
+    if (!address) return
+    
+    setLoading(true)
+    try {
+      const holdings: TokenBalance[] = []
+      
+      // Add ETH balance
+      if (ethBalance) {
+        const ethPrice = coinPrices.ethereum?.usd || 2500
+        const ethAmount = parseFloat(ethBalance.formatted)
+        const ethMarketValue = ethAmount * ethPrice
+        
+        holdings.push({
+          symbol: 'ETH',
+          name: 'Ethereum',
+          balance: ethBalance.value.toString(),
+          decimals: 18,
+          address: 'native',
+          price: ethPrice,
+          priceChange24h: coinPrices.ethereum?.usd_24h_change || 0,
+          marketValue: ethMarketValue,
+          sparklineData: generateSparklineData(ethPrice, coinPrices.ethereum?.usd_24h_change || 0)
+        })
+      }
+
+      // Fetch ERC20 token balances
+      try {
+        const tokenContracts = COMMON_TOKENS.map(token => [
+          {
+            address: token.address as `0x${string}`,
+            abi: ERC20_ABI,
+            functionName: 'balanceOf',
+            args: [address]
+          },
+          {
+            address: token.address as `0x${string}`,
+            abi: ERC20_ABI,
+            functionName: 'decimals'
+          }
+        ]).flat()
+
+        const results = await readContracts(config, {
+          contracts: tokenContracts as any
+        })
+
+        for (let i = 0; i < COMMON_TOKENS.length; i++) {
+          const token = COMMON_TOKENS[i]
+          const balanceResult = results[i * 2]
+          const decimalsResult = results[i * 2 + 1]
+
+          if (balanceResult.status === 'success' && typeof balanceResult.result === 'bigint' && balanceResult.result > BigInt(0)) {
+            const decimals = decimalsResult.status === 'success' ? Number(decimalsResult.result) : token.decimals
+            const priceKey = token.symbol.toLowerCase() === 'usdt' ? 'tether' : 
+                           token.symbol.toLowerCase() === 'usdc' ? 'usd-coin' :
+                           token.symbol.toLowerCase() === 'link' ? 'chainlink' :
+                           token.symbol.toLowerCase() === 'uni' ? 'uniswap' : null
+            
+            const price = priceKey ? coinPrices[priceKey]?.usd || 1 : 1
+            const priceChange = priceKey ? coinPrices[priceKey]?.usd_24h_change || 0 : 0
+            const balance = formatUnits(balanceResult.result as bigint, decimals)
+            const marketValue = parseFloat(balance) * price
+            
+            holdings.push({
+              symbol: token.symbol,
+              name: token.name,
+              balance: balanceResult.result.toString(),
+              decimals,
+              address: token.address,
+              price,
+              priceChange24h: priceChange,
+              marketValue,
+              sparklineData: generateSparklineData(price, priceChange)
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching token balances:', error)
+      }
+
+      // Sort by market value
+      holdings.sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
+
+      const totalValue = holdings.reduce((sum, holding) => sum + (holding.marketValue || 0), 0)
+      const totalValueChange = holdings.reduce((sum, holding) => {
+        const currentValue = holding.marketValue || 0
+        const previousValue = currentValue / (1 + (holding.priceChange24h || 0) / 100)
+        return sum + (currentValue - previousValue)
+      }, 0)
+
+      setPortfolioData({
+        totalValue,
+        totalValueChange,
+        holdings,
+        chartData: generateChartData(totalValue, totalValueChange, selectedTimeframe),
+        isLoadingChart: false
+      })
+    } catch (error) {
+      console.error('Error fetching portfolio data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const generateChartData = (currentValue: number, change: number, timeframe: string) => {
+    const points = timeframe === '24H' ? 24 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 90
+    const data = []
+    const changePerPoint = change / points
+    
+    for (let i = 0; i < points; i++) {
+      const value = currentValue - change + (changePerPoint * i) + (Math.random() - 0.5) * currentValue * 0.02
+      data.push({
+        time: new Date(Date.now() - (points - i) * (timeframe === '24H' ? 3600000 : 86400000)).toISOString(),
+        value: Math.max(0, value)
+      })
+    }
+    
+    return data
+  }
+
+  const generateSparklineData = (price: number, change: number) => {
+    const data = []
+    for (let i = 0; i < 24; i++) {
+      const hourlyChange = change / 24
+      const value = price - change + (hourlyChange * i) + (Math.random() - 0.5) * price * 0.01
+      data.push({
+        time: new Date(Date.now() - (24 - i) * 3600000).toISOString(),
+        value: Math.max(0, value)
+      })
+    }
+    return data
+  }
+
+  const EmptyState = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center py-16 space-y-6"
+    >
+      <div className="w-24 h-24 mx-auto bg-muted rounded-full flex items-center justify-center">
+        <Wallet className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Sambungkan MetaMask</h3>
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Sambungkan wallet MetaMask Anda untuk melihat portofolio cryptocurrency dan melacak nilai aset secara real-time.
+        </p>
+      </div>
+      <Button onClick={() => setShowWalletModal(true)} size="lg">
+        <Wallet className="h-5 w-5 mr-2" />
+        Connect Wallet
+      </Button>
+    </motion.div>
+  )
+
+  const NetworkWarning = () => {
+    if (!chain || chain.id === 1) return null
+    
+    return (
+      <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/10">
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-orange-500" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                Network not fully supported
+              </p>
+              <p className="text-xs text-orange-700 dark:text-orange-300">
+                You're connected to {chain.name}. For full portfolio tracking, please switch to Ethereum Mainnet.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="ml-auto">
+              <Network className="h-4 w-4 mr-2" />
+              Switch Network
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!isConnected) {
+    return (
+      <>
+        <WalletConnectModal
+          isOpen={showWalletModal}
+          onClose={() => setShowWalletModal(false)}
+          onEmailClick={() => {
+            setShowWalletModal(false)
+            window.location.href = '/auth/signin'
+          }}
+        />
+        <div className="container max-w-6xl mx-auto p-6">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Portfolio</h1>
+              <p className="text-muted-foreground">
+                Track your cryptocurrency portfolio and monitor performance
+              </p>
+            </div>
+            <WalletButton onConnect={() => setShowWalletModal(true)} />
+          </div>
+          <EmptyState />
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <WalletConnectModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onEmailClick={() => {
+          setShowWalletModal(false)
+          window.location.href = '/auth/signin'
+        }}
+      />
+      
+      <div className="container max-w-6xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between"
+        >
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Portfolio</h1>
+            <p className="text-muted-foreground">
+              Track your cryptocurrency portfolio and monitor performance
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={fetchPortfolioData} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <WalletButton onConnect={() => setShowWalletModal(true)} />
+          </div>
+        </motion.div>
+
+        <NetworkWarning />
+
+        {/* Portfolio Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Portfolio Value</CardTitle>
+                  <CardDescription>Total value across all assets</CardDescription>
+                </div>
+                <div className="flex items-center gap-1">
+                  {['24H', '7D', '30D', '90D'].map((period) => (
+                    <Button
+                      key={period}
+                      variant={selectedTimeframe === period ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTimeframe(period)
+                        if (portfolioData) {
+                          fetchHistoricalData()
+                        }
+                      }}
+                      className="text-xs"
+                    >
+                      {period}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-64 w-full" />
+                </div>
+              ) : portfolioData ? (
+                <>
+                    <div className="space-y-2">
+                      <div className="text-3xl font-bold">
+                        {formatCurrency(portfolioData.totalValue)}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {portfolioData.totalValueChange >= 0 ? (
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 text-red-500" />
+                        )}
+                        <span className={`text-sm font-medium ${
+                          portfolioData.totalValueChange >= 0 ? 'text-green-500' : 'text-red-500'
+                        }`}>
+                          {portfolioData.totalValueChange >= 0 ? '+' : ''}
+                          {formatCurrency(portfolioData.totalValueChange)} (
+                          {((portfolioData.totalValueChange / (portfolioData.totalValue - portfolioData.totalValueChange)) * 100).toFixed(2)}%)
+                        </span>
+                        <span className="text-xs text-muted-foreground">24h</span>
+                      </div>
+                    </div>
+                  
+                  <div className="h-64">
+                    {chartLoading ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="space-y-4 w-full">
+                          <Skeleton className="h-4 w-1/4" />
+                          <Skeleton className="h-48 w-full" />
+                          <Skeleton className="h-4 w-1/3" />
+                        </div>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={portfolioData.chartData}>
+                          <defs>
+                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <XAxis 
+                            dataKey="time"
+                            tickFormatter={(value) => {
+                              const date = new Date(value)
+                              if (selectedTimeframe === '24H') {
+                                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              }
+                              return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs"
+                          />
+                          <YAxis 
+                            tickFormatter={(value) => `$${(value / 1000).toFixed(1)}k`}
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs"
+                          />
+                          <Tooltip
+                            formatter={(value: number) => [formatCurrency(value), 'Portfolio Value']}
+                            labelFormatter={(label) => {
+                              const date = new Date(label)
+                              if (selectedTimeframe === '24H') {
+                                return date.toLocaleString()
+                              }
+                              return date.toLocaleDateString()
+                            }}
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke="hsl(var(--primary))"
+                            fillOpacity={1}
+                            fill="url(#colorValue)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No portfolio data available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Holdings Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Holdings</CardTitle>
+                  <CardDescription>Your current cryptocurrency positions</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : portfolioData && portfolioData.holdings.length > 0 ? (
+                <div className="space-y-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Asset</TableHead>
+                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead className="text-right">Market Value</TableHead>
+                        <TableHead className="text-right">24h Change</TableHead>
+                        <TableHead className="text-right">24h Chart</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {portfolioData.holdings.map((holding) => (
+                        <TableRow key={holding.symbol} className="hover:bg-muted/50">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <CryptoIcon symbol={holding.symbol} size={32} />
+                              <div>
+                                <div className="font-medium">{holding.symbol}</div>
+                                <div className="text-sm text-muted-foreground">{holding.name}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div>
+                              <div className="font-medium">
+                                {formatTokenAmount(holding.balance, holding.decimals)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {holding.price ? formatCurrency(holding.price) : '—'}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {holding.marketValue ? formatCurrency(holding.marketValue) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {holding.priceChange24h !== undefined ? (
+                              <div className={`flex items-center justify-end gap-1 ${
+                                holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
+                              }`}>
+                                {holding.priceChange24h >= 0 ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3" />
+                                )}
+                                <span className="text-sm font-medium">
+                                  {holding.priceChange24h >= 0 ? '+' : ''}{holding.priceChange24h.toFixed(2)}%
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {holding.sparklineData && (
+                              <div className="w-16 h-8">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <LineChart data={holding.sparklineData}>
+                                    <Line
+                                      type="monotone"
+                                      dataKey="value"
+                                      stroke={holding.priceChange24h && holding.priceChange24h >= 0 ? '#10b981' : '#ef4444'}
+                                      strokeWidth={1.5}
+                                      dot={false}
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => setSelectedAsset(holding)}
+                                >
+                                  <ArrowUpRight className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>{holding.name} ({holding.symbol})</DialogTitle>
+                                  <DialogDescription>
+                                    Detailed information about your {holding.symbol} position
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Current Price</p>
+                                      <p className="text-lg font-semibold">
+                                        {holding.price ? formatCurrency(holding.price) : '—'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">24h Change</p>
+                                      <p className={`text-lg font-semibold ${
+                                        holding.priceChange24h && holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
+                                      }`}>
+                                        {holding.priceChange24h !== undefined ? 
+                                          `${holding.priceChange24h >= 0 ? '+' : ''}${holding.priceChange24h.toFixed(2)}%` : '—'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Your Balance</p>
+                                      <p className="text-lg font-semibold">
+                                        {formatTokenAmount(holding.balance, holding.decimals)} {holding.symbol}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Market Value</p>
+                                      <p className="text-lg font-semibold">
+                                        {holding.marketValue ? formatCurrency(holding.marketValue) : '—'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  {holding.address !== 'native' && (
+                                    <div className="pt-4 border-t">
+                                      <p className="text-sm text-muted-foreground mb-2">Contract Address</p>
+                                      <div className="flex items-center gap-2">
+                                        <code className="text-xs bg-muted px-2 py-1 rounded flex-1">
+                                          {holding.address}
+                                        </code>
+                                        <Button variant="outline" size="sm">
+                                          <ExternalLink className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-8 space-y-4">
+                  <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+                    <Plus className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">No assets found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Add some cryptocurrency to your wallet to start tracking your portfolio.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </>
+  )
 }

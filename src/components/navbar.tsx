@@ -14,7 +14,7 @@ import { WalletConnectModal } from "@/components/WalletConnectModal"
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/markets", label: "Markets" },
+  { href: "/portfolio", label: "Portfolio" },
   { href: "/news", label: "News" },
   { href: "/about", label: "About" },
 ]
