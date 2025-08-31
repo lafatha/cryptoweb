@@ -10,11 +10,11 @@ export interface ManualPortfolioEntry {
 }
 
 export interface ManualPortfolioEntryWithPricing extends ManualPortfolioEntry {
-  currentPrice?: number
-  currentValue?: number
-  pnl?: number
-  pnlPercentage?: number
-  priceChange24h?: number
+  currentPrice?: number | null
+  currentValue?: number | null
+  pnl?: number | null
+  pnlPercentage?: number | null
+  priceChange24h?: number | null
 }
 
 const STORAGE_KEY = 'crypto-dashboard-manual-portfolio'
@@ -101,12 +101,14 @@ export function enrichManualEntriesWithPricing(
 ): ManualPortfolioEntryWithPricing[] {
   return entries.map(entry => {
     const priceData = coinPrices[entry.tokenId]
-    const currentPrice = priceData?.usd
-    const currentValue = currentPrice ? entry.amount * currentPrice : undefined
+    
+    // Handle both null/undefined and actual price data
+    const currentPrice = priceData?.usd || null
+    const currentValue = currentPrice ? entry.amount * currentPrice : null
     const totalCost = entry.amount * entry.buyPrice
-    const pnl = currentValue ? currentValue - totalCost : undefined
-    const pnlPercentage = pnl && totalCost > 0 ? (pnl / totalCost) * 100 : undefined
-    const priceChange24h = priceData?.usd_24h_change
+    const pnl = currentValue ? currentValue - totalCost : null
+    const pnlPercentage = pnl && totalCost > 0 ? (pnl / totalCost) * 100 : null
+    const priceChange24h = priceData?.usd_24h_change || null
 
     return {
       ...entry,

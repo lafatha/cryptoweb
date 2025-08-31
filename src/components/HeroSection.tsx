@@ -42,21 +42,7 @@ export default function HeroSection() {
               </button>
             </div>
 
-            {/* Feature highlights */}
-            <div className="flex flex-wrap gap-6 justify-center lg:justify-start text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>Real-time prices</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <span>AI insights</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                <span>Multi-wallet support</span>
-              </div>
-            </div>
+
           </div>
 
           {/* Bagian chat demo - kanan */}

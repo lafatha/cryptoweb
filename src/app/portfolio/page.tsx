@@ -15,6 +15,11 @@ import {
   formatCurrency,
   calculateROI
 } from '@/lib/portfolio-utils'
+import { 
+  fetchSimplePricesWithFallback,
+  normalizeTokenSymbol,
+  getCoinGeckoIdFromSymbol
+} from '@/lib/pricing'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -59,10 +64,10 @@ const ERC20_ABI = parseAbi([
 
 // Common ERC20 tokens pada Ethereum mainnet
 const COMMON_TOKENS = [
-  { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6 },
-  { address: '0xA0b86a33E6441986C3df53b1B8c6A0D8c08bDD4e', symbol: 'USDC', name: 'USD Coin', decimals: 6 },
-  { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', symbol: 'LINK', name: 'Chainlink', decimals: 18 },
-  { address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', symbol: 'UNI', name: 'Uniswap', decimals: 18 },
+  { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6, coinGeckoId: 'tether' },
+  { address: '0xA0b86a33E6441986C3df53b1B8c6A0D8c08bDD4e', symbol: 'USDC', name: 'USD Coin', decimals: 6, coinGeckoId: 'usd-coin' },
+  { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', symbol: 'LINK', name: 'Chainlink', decimals: 18, coinGeckoId: 'chainlink' },
+  { address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', symbol: 'UNI', name: 'Uniswap', decimals: 18, coinGeckoId: 'uniswap' },
 ]
 
 interface TokenBalance {
@@ -210,15 +215,27 @@ export default function PortfolioPage() {
   const fetchCoinPrices = async () => {
     try {
       // Get token IDs from both wallet tokens and manual entries
-      const walletTokens = ['ethereum', 'tether', 'usd-coin', 'chainlink', 'uniswap']
+      const walletTokens = [
+        'ethereum', // ETH
+        ...COMMON_TOKENS.map(token => (token as any).coinGeckoId).filter(Boolean), // ERC20 tokens
+        'bitcoin', 'solana', 'cardano', 'polkadot', 'avalanche-2', 'matic-network' // Popular assets for manual entries
+      ]
       const manualTokenIds = getTokenIdsFromManualEntries(manualEntries)
       const allTokenIds = [...new Set([...walletTokens, ...manualTokenIds])]
       
-      const response = await fetch(`/api/coingecko/simple-prices?ids=${allTokenIds.join(',')}&vs_currencies=usd&include_24hr_change=true`)
-      if (response.ok) {
-        const data = await response.json()
-        setCoinPrices(data)
-      }
+      // Use enhanced pricing with fallback handling
+      const priceData = await fetchSimplePricesWithFallback(allTokenIds, true)
+      
+      // Convert null values back to the expected format for backward compatibility
+      const compatibleData: Record<string, any> = {}
+      Object.entries(priceData).forEach(([tokenId, price]) => {
+        if (price !== null) {
+          compatibleData[tokenId] = price
+        }
+        // If price is null, we simply don't include it, which will be handled gracefully
+      })
+      
+      setCoinPrices(compatibleData)
     } catch (error) {
       console.error('Error fetching coin prices:', error)
     }
@@ -276,15 +293,13 @@ export default function PortfolioPage() {
 
           if (balanceResult.status === 'success' && typeof balanceResult.result === 'bigint' && balanceResult.result > BigInt(0)) {
             const decimals = decimalsResult.status === 'success' ? Number(decimalsResult.result) : token.decimals
-            const priceKey = token.symbol.toLowerCase() === 'usdt' ? 'tether' : 
-                           token.symbol.toLowerCase() === 'usdc' ? 'usd-coin' :
-                           token.symbol.toLowerCase() === 'link' ? 'chainlink' :
-                           token.symbol.toLowerCase() === 'uni' ? 'uniswap' : null
+            // Use the token's coinGeckoId if available, fallback to symbol mapping
+            const priceKey = (token as any).coinGeckoId || getCoinGeckoIdFromSymbol(token.symbol)
             
-            const price = priceKey ? coinPrices[priceKey]?.usd || 1 : 1
-            const priceChange = priceKey ? coinPrices[priceKey]?.usd_24h_change || 0 : 0
+            const price = priceKey ? coinPrices[priceKey]?.usd || null : null
+            const priceChange = priceKey ? coinPrices[priceKey]?.usd_24h_change || null : null
             const balance = formatUnits(balanceResult.result as bigint, decimals)
-            const marketValue = parseFloat(balance) * price
+            const marketValue = price ? parseFloat(balance) * price : undefined
             
             holdings.push({
               symbol: token.symbol,
@@ -733,15 +748,15 @@ export default function PortfolioPage() {
                                 {formatTokenAmount(holding.balance, holding.decimals)}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {holding.price ? `$${formatCurrency(holding.price)}` : '—'}
+                                {holding.price ? `$${formatCurrency(holding.price)}` : holding.isManual ? 'N/A' : '—'}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            {holding.marketValue ? `$${formatCurrency(holding.marketValue)}` : '—'}
+                            {holding.marketValue ? `$${formatCurrency(holding.marketValue)}` : holding.isManual ? 'N/A' : '—'}
                           </TableCell>
                           <TableCell className="text-right">
-                            {holding.priceChange24h !== undefined ? (
+                            {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? (
                               <div className={`flex items-center justify-end gap-1 ${
                                 holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
                               }`}>
@@ -751,7 +766,7 @@ export default function PortfolioPage() {
                                   <TrendingDown className="h-3 w-3" />
                                 )}
                                 <span className="text-sm font-medium">
-                                  {holding.priceChange24h >= 0 ? '+' : ''}{holding.priceChange24h.toFixed(2)}%
+                                  {holding.priceChange24h >= 0 ? '+' : ''}{(holding.priceChange24h || 0).toFixed(2)}%
                                 </span>
                               </div>
                             ) : (
@@ -819,8 +834,8 @@ export default function PortfolioPage() {
                                       <p className={`text-lg font-semibold ${
                                         holding.priceChange24h && holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
                                       }`}>
-                                        {holding.priceChange24h !== undefined ? 
-                                          `${holding.priceChange24h >= 0 ? '+' : ''}${holding.priceChange24h.toFixed(2)}%` : '—'}
+                                        {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? 
+                                          `${holding.priceChange24h >= 0 ? '+' : ''}${(holding.priceChange24h || 0).toFixed(2)}%` : '—'}
                                       </p>
                                     </div>
                                     <div>

@@ -96,3 +96,92 @@ export async function fetchSimplePrices(
     return {}
   }
 }
+
+/**
+ * Enhanced price fetching with fallback handling and error recovery
+ * Returns price data with explicit null/undefined handling for unsupported assets
+ */
+export async function fetchSimplePricesWithFallback(
+  coinIds: string[],
+  includePriceChange: boolean = true
+): Promise<Record<string, TokenPrice | null>> {
+  if (coinIds.length === 0) {
+    return {}
+  }
+
+  const result: Record<string, TokenPrice | null> = {}
+  
+  // Initialize all coins as null (not supported)
+  coinIds.forEach(id => {
+    result[id] = null
+  })
+
+  try {
+    const idsParam = coinIds.join(',')
+    const changeParam = includePriceChange ? '&include_24hr_change=true' : ''
+    const url = `/api/coingecko/simple-prices?ids=${idsParam}&vs_currencies=usd${changeParam}`
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      console.warn(`Failed to fetch simple prices: ${response.status}`)
+      return result
+    }
+    
+    const data = await response.json()
+    
+    // Update result with actual price data where available
+    Object.entries(data).forEach(([coinId, priceData]) => {
+      if (priceData && typeof priceData === 'object' && 'usd' in priceData) {
+        result[coinId] = priceData as TokenPrice
+      }
+    })
+    
+    return result
+  } catch (error) {
+    console.error('Error fetching simple prices with fallback:', error)
+    return result
+  }
+}
+
+/**
+ * Normalize token symbol for consistent API calls
+ */
+export function normalizeTokenSymbol(symbol: string): string {
+  return symbol.toUpperCase().trim()
+}
+
+/**
+ * Get CoinGecko ID from symbol mapping
+ */
+export function getCoinGeckoIdFromSymbol(symbol: string): string | null {
+  const symbolMap: Record<string, string> = {
+    'BTC': 'bitcoin',
+    'ETH': 'ethereum',
+    'SOL': 'solana',
+    'ADA': 'cardano',
+    'DOT': 'polkadot',
+    'MATIC': 'matic-network',
+    'LINK': 'chainlink',
+    'UNI': 'uniswap',
+    'LTC': 'litecoin',
+    'BCH': 'bitcoin-cash',
+    'USDT': 'tether',
+    'USDC': 'usd-coin',
+    'BNB': 'binancecoin',
+    'XRP': 'ripple',
+    'DOGE': 'dogecoin',
+    'AVAX': 'avalanche-2',
+    'SHIB': 'shiba-inu',
+    'ATOM': 'cosmos',
+    'NEAR': 'near',
+    'ALGO': 'algorand'
+  }
+  
+  const normalizedSymbol = normalizeTokenSymbol(symbol)
+  return symbolMap[normalizedSymbol] || null
+}

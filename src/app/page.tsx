@@ -4,6 +4,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MarketTicker } from "@/components/market-ticker"
 import HeroSection from "@/components/HeroSection"
 import { ArrowRight, BarChart3, TrendingUp, Shield, Plus, HelpCircle, Bot, Wallet } from "lucide-react"
@@ -131,32 +132,29 @@ export default function Home() {
             </p>
           </motion.div>
           
-          <div className="grid gap-6">
-            {faqs.map((faq, index) => (
-              <motion.div
-                key={faq.question}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-              >
-                <Card className="hover:shadow-lg transition-all duration-300">
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                        <HelpCircle className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="space-y-2">
-                        <CardTitle className="text-lg text-left">{faq.question}</CardTitle>
-                        <CardDescription className="text-base leading-relaxed text-left">
-                          {faq.answer}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="max-w-2xl mx-auto"
+          >
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem 
+                  key={`faq-${index}`} 
+                  value={`item-${index}`}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg px-6 py-2 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                >
+                  <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed pt-2 pb-4">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
 
           {/* CTA at bottom of FAQ */}
           <motion.div
