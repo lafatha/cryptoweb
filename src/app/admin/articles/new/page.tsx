@@ -2,6 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { slugify } from '@/lib/slugify';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(() => import('@/components/Admin/RichTextEditor'), { 
+  ssr: false,
+  loading: () => <div className="border rounded-lg p-4 min-h-[200px] flex items-center justify-center text-gray-500">Loading editor...</div>
+});
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState('');
@@ -81,13 +87,15 @@ export default function NewArticlePage() {
           value={excerpt}
           onChange={e => setExcerpt(e.target.value)}
         />
-        <textarea
-          className="w-full border rounded p-2"
-          placeholder="Content"
-          rows={10}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            placeholder="Write your article content..."
+            className="border rounded-lg"
+          />
+        </div>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

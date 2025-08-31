@@ -1,6 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(() => import('@/components/Admin/RichTextEditor'), { 
+  ssr: false,
+  loading: () => <div className="border rounded-lg p-4 min-h-[200px] flex items-center justify-center text-gray-500">Loading editor...</div>
+});
 
 interface Article {
   id: string;
@@ -86,13 +92,15 @@ export default function EditForm({ a }: { a: Article }) {
           onChange={e => setExcerpt(e.target.value)}
           placeholder="Excerpt"
         />
-        <textarea
-          className="w-full border rounded p-2"
-          rows={10}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder="Content"
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            placeholder="Edit your article content..."
+            className="border rounded-lg"
+          />
+        </div>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

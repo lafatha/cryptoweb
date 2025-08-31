@@ -125,22 +125,28 @@ export function enrichManualEntriesWithPricing(
 export function convertManualEntriesToTokenBalance(
   enrichedEntries: ManualPortfolioEntryWithPricing[]
 ): any[] {
-  return enrichedEntries.map(entry => ({
-    symbol: entry.symbol,
-    name: entry.name,
-    balance: entry.amount.toString(),
-    decimals: 18, // Default for display purposes
-    address: `manual-${entry.id}`,
-    price: entry.currentPrice,
-    priceChange24h: entry.priceChange24h,
-    marketValue: entry.currentValue,
-    costBasis: entry.buyPrice,
-    roi: entry.pnlPercentage,
-    sparklineData: generateSparklineData(entry.currentPrice || entry.buyPrice, entry.priceChange24h || 0),
-    isManual: true,
-    manualEntryId: entry.id,
-    notes: entry.notes,
-  }))
+  return enrichedEntries.map(entry => {
+    // Convert amount to wei-like representation for consistency
+    // Since manual entries are in decimal form, we multiply by 10^18
+    const balanceInWei = (entry.amount * Math.pow(10, 18)).toString()
+    
+    return {
+      symbol: entry.symbol,
+      name: entry.name,
+      balance: balanceInWei,
+      decimals: 18, // Standardize to 18 decimals for consistency
+      address: `manual-${entry.id}`,
+      price: entry.currentPrice,
+      priceChange24h: entry.priceChange24h,
+      marketValue: entry.currentValue,
+      costBasis: entry.buyPrice,
+      roi: entry.pnlPercentage,
+      sparklineData: generateSparklineData(entry.currentPrice || entry.buyPrice, entry.priceChange24h || 0),
+      isManual: true,
+      manualEntryId: entry.id,
+      notes: entry.notes,
+    }
+  })
 }
 
 /**

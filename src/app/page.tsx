@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MarketTicker } from "@/components/market-ticker"
-import { ArrowRight, BarChart3, PieChart, TrendingUp, Shield, Clock, Zap, Bot, Wallet, Plus, HelpCircle } from "lucide-react"
+import { ArrowRight, BarChart3, TrendingUp, Shield, Plus, HelpCircle, Bot, Wallet } from "lucide-react"
 
 const features = [
   {
@@ -87,16 +87,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex justify-center"
           >
             <Button asChild size="lg" className="text-lg px-8">
               <Link href="/portfolio">
                 Start Tracking
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8" asChild>
-              <Link href="/portfolio">View Portfolio</Link>
             </Button>
           </motion.div>
         </div>
@@ -204,15 +201,12 @@ export default function Home() {
                 Start monitoring your crypto holdings with AI-powered insights
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Button asChild size="lg" className="text-lg px-8">
                 <Link href="/portfolio">
                   Start Tracking
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8" asChild>
-                <Link href="/markets">Explore Markets</Link>
               </Button>
             </div>
           </motion.div>

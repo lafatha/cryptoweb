@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { useAccount } from "wagmi"
-import { Menu, TrendingUp, LogIn, LogOut, User } from "lucide-react"
+import { Menu, LogIn, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -16,7 +16,6 @@ const navItems = [
   { href: "/", label: "Home" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/news", label: "News" },
-  { href: "/about", label: "About" },
 ]
 
 export function Navbar() {
@@ -38,8 +37,19 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <TrendingUp className="h-6 w-6" />
+        <Link href="/" className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center">
+            <div className="relative">
+              {/* Bot Eyes */}
+              <div className="flex space-x-1 mb-1">
+                <div className="w-1.5 h-1.5 bg-white dark:bg-black rounded-full"></div>
+                <div className="w-1.5 h-1.5 bg-white dark:bg-black rounded-full"></div>
+              </div>
+              {/* Bot Antenna */}
+              <div className="w-0.5 h-2 bg-white dark:bg-black mx-auto"></div>
+              <div className="w-1 h-1 bg-white dark:bg-black rounded-full mx-auto -mt-0.5"></div>
+            </div>
+          </div>
           <span className="font-bold text-xl">CryptoFinance</span>
         </Link>
 

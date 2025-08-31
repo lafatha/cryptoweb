@@ -7,9 +7,17 @@ import { motion } from "framer-motion"
 import { formatUnits, parseAbi } from 'viem'
 import { readContracts } from 'wagmi/actions'
 import { config } from '@/lib/wagmi'
+import { 
+  aggregateTokenHoldings, 
+  calculatePortfolioTotals, 
+  calculateMarketValue, 
+  formatTokenBalance,
+  formatCurrency,
+  calculateROI
+} from '@/lib/portfolio-utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -24,9 +32,7 @@ import {
   Plus,
   AlertCircle,
   Network,
-  DollarSign,
-  Settings,
-  Bot
+
 } from "lucide-react"
 import { WalletButton } from "@/components/WalletButton"
 import { WalletConnectModal } from "@/components/WalletConnectModal"
@@ -84,17 +90,10 @@ interface PortfolioData {
   isLoadingChart: boolean
 }
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
+
 
 const formatTokenAmount = (amount: string, decimals: number) => {
-  const value = parseFloat(formatUnits(BigInt(amount), decimals))
+  const value = parseFloat(formatTokenBalance(amount, decimals, 5))
   if (value < 0.0001) return '< 0.0001'
   if (value < 1) return value.toFixed(6)
   if (value < 100) return value.toFixed(4)
@@ -185,20 +184,24 @@ export default function PortfolioPage() {
           value: totalValue * (point.value / ethPrice) * ethRatio + totalValue * (1 - ethRatio) // Simplified calculation
         }))
         
-        setPortfolioData(prev => prev ? {
-          ...prev,
-          chartData,
-          isLoadingChart: false
-        } : null)
+        if (portfolioData) {
+          setPortfolioData({
+            ...portfolioData,
+            chartData,
+            isLoadingChart: false
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching historical data:', error)
       // Use fallback generated data
-      setPortfolioData(prev => prev ? {
-        ...prev,
-        chartData: generateChartData(portfolioData.totalValue, portfolioData.totalValueChange, selectedTimeframe),
-        isLoadingChart: false
-      } : null)
+      if (portfolioData) {
+        setPortfolioData({
+          ...portfolioData,
+          chartData: generateChartData(portfolioData.totalValue, portfolioData.totalValueChange, selectedTimeframe),
+          isLoadingChart: false
+        })
+      }
     } finally {
       setChartLoading(false)
     }
@@ -306,20 +309,32 @@ export default function PortfolioPage() {
       const manualHoldings = convertManualEntriesToTokenBalance(enrichedManualEntries)
       holdings.push(...manualHoldings)
 
-      // Sort by market value
-      holdings.sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
+      // Aggregate duplicate tokens and calculate proper totals
+      const aggregatedHoldings = aggregateTokenHoldings(holdings)
+      
+      // Recalculate market values and ROI for aggregated holdings
+      const finalHoldings = aggregatedHoldings.map(holding => {
+        const marketValue = holding.price ? 
+          calculateMarketValue(holding.balance, holding.decimals, holding.price) : 
+          holding.marketValue || 0
+        
+        const roi = holding.costBasis ? 
+          calculateROI(marketValue, holding.costBasis, holding.balance, holding.decimals) : 
+          holding.roi
 
-      const totalValue = holdings.reduce((sum, holding) => sum + (holding.marketValue || 0), 0)
-      const totalValueChange = holdings.reduce((sum, holding) => {
-        const currentValue = holding.marketValue || 0
-        const previousValue = currentValue / (1 + (holding.priceChange24h || 0) / 100)
-        return sum + (currentValue - previousValue)
-      }, 0)
+        return {
+          ...holding,
+          marketValue,
+          roi
+        }
+      })
+
+      const { totalValue, totalValueChange } = calculatePortfolioTotals(finalHoldings)
 
       setPortfolioData({
         totalValue,
         totalValueChange,
-        holdings,
+        holdings: finalHoldings,
         chartData: generateChartData(totalValue, totalValueChange, selectedTimeframe),
         isLoadingChart: false
       })
@@ -558,7 +573,7 @@ export default function PortfolioPage() {
                 <>
                     <div className="space-y-2">
                       <div className="text-3xl font-bold">
-                        {formatCurrency(portfolioData.totalValue)}
+                        ${formatCurrency(portfolioData.totalValue)}
                       </div>
                       <div className="flex items-center gap-2">
                         {portfolioData.totalValueChange >= 0 ? (
@@ -570,7 +585,7 @@ export default function PortfolioPage() {
                           portfolioData.totalValueChange >= 0 ? 'text-green-500' : 'text-red-500'
                         }`}>
                           {portfolioData.totalValueChange >= 0 ? '+' : ''}
-                          {formatCurrency(portfolioData.totalValueChange)} (
+                          ${formatCurrency(Math.abs(portfolioData.totalValueChange))} (
                           {((portfolioData.totalValueChange / (portfolioData.totalValue - portfolioData.totalValueChange)) * 100).toFixed(2)}%)
                         </span>
                         <span className="text-xs text-muted-foreground">24h</span>
@@ -615,7 +630,7 @@ export default function PortfolioPage() {
                             className="text-xs"
                           />
                           <Tooltip
-                            formatter={(value: number) => [formatCurrency(value), 'Portfolio Value']}
+                            formatter={(value: number) => [`$${formatCurrency(value)}`, 'Portfolio Value']}
                             labelFormatter={(label) => {
                               const date = new Date(label)
                               if (selectedTimeframe === '24H') {
@@ -731,12 +746,12 @@ export default function PortfolioPage() {
                                 {formatTokenAmount(holding.balance, holding.decimals)}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {holding.price ? formatCurrency(holding.price) : '—'}
+                                {holding.price ? `$${formatCurrency(holding.price)}` : '—'}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            {holding.marketValue ? formatCurrency(holding.marketValue) : '—'}
+                            {holding.marketValue ? `$${formatCurrency(holding.marketValue)}` : '—'}
                           </TableCell>
                           <TableCell className="text-right">
                             {holding.priceChange24h !== undefined ? (
@@ -809,7 +824,7 @@ export default function PortfolioPage() {
                                     <div>
                                       <p className="text-sm text-muted-foreground">Current Price</p>
                                       <p className="text-lg font-semibold">
-                                        {holding.price ? formatCurrency(holding.price) : '—'}
+                                        {holding.price ? `$${formatCurrency(holding.price)}` : '—'}
                                       </p>
                                     </div>
                                     <div>
@@ -830,7 +845,7 @@ export default function PortfolioPage() {
                                     <div>
                                       <p className="text-sm text-muted-foreground">Market Value</p>
                                       <p className="text-lg font-semibold">
-                                        {holding.marketValue ? formatCurrency(holding.marketValue) : '—'}
+                                        {holding.marketValue ? `$${formatCurrency(holding.marketValue)}` : '—'}
                                       </p>
                                     </div>
                                   </div>

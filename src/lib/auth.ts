@@ -89,17 +89,17 @@ const authConfig = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: { token: any; user: any; account: any }) {
       if (user) {
         token.id = user.id
-        token.walletAddress = (user as any).walletAddress
+        token.walletAddress = user.walletAddress
       }
       if (account?.provider === "wallet") {
         token.isWallet = true
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token) {
         session.user.id = token.id as string
         session.user.walletAddress = token.walletAddress as string
