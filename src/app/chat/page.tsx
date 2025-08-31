@@ -15,6 +15,36 @@ interface ChatMessage {
   timestamp: Date
 }
 
+// Robot SVG Icon Component from navbar (matching panel)
+const RobotIcon = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 32 32" 
+    className={className}
+    fill="currentColor"
+  >
+    {/* Robot Head */}
+    <rect x="8" y="8" width="16" height="12" rx="2" className="fill-gray-700 dark:fill-gray-300" />
+    
+    {/* Robot Eyes */}
+    <circle cx="12" cy="12" r="1.5" className="fill-white dark:fill-gray-900" />
+    <circle cx="20" cy="12" r="1.5" className="fill-white dark:fill-gray-900" />
+    
+    {/* Robot Mouth */}
+    <rect x="14" y="16" width="4" height="1" rx="0.5" className="fill-white dark:fill-gray-900" />
+    
+    {/* Robot Antenna */}
+    <line x1="16" y1="8" x2="16" y2="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="16" cy="4" r="1" className="fill-gray-700 dark:fill-gray-300" />
+    
+    {/* Robot Body */}
+    <rect x="10" y="20" width="12" height="8" rx="1" className="fill-gray-600 dark:fill-gray-400" />
+    
+    {/* Robot Arms */}
+    <rect x="6" y="22" width="4" height="2" rx="1" className="fill-gray-600 dark:fill-gray-400" />
+    <rect x="22" y="22" width="4" height="2" rx="1" className="fill-gray-600 dark:fill-gray-400" />
+  </svg>
+)
+
 export default function ChatPage() {
   const router = useRouter()
   const { portfolioData } = usePortfolio()
@@ -209,33 +239,22 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-gray-200 flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
+      <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.back()}
-              className="text-white hover:bg-gray-800"
+              className="text-gray-400 hover:text-gray-200 hover:bg-white/5"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-              <div className="relative">
-                {/* Bot Eyes */}
-                <div className="flex space-x-1 mb-1">
-                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
-                  <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
-                </div>
-                {/* Bot Antenna */}
-                <div className="w-0.5 h-2 bg-black mx-auto"></div>
-                <div className="w-1 h-1 bg-black rounded-full mx-auto -mt-0.5"></div>
-              </div>
-            </div>
-            <h1 className="text-lg font-semibold">AI Portfolio Assistant</h1>
+            <RobotIcon className="w-8 h-8 text-gray-200" />
+            <h1 className="text-lg font-semibold text-gray-200">AI Portfolio Assistant</h1>
           </div>
         </div>
       </header>
@@ -247,19 +266,8 @@ export default function ChatPage() {
           <div className="max-w-4xl mx-auto py-6 space-y-6">
             {messages.length === 0 && (
               <div className="text-center py-20">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mx-auto mb-6">
-                  <div className="relative">
-                    {/* Bot Eyes */}
-                    <div className="flex space-x-1 mb-1">
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                      <div className="w-2 h-2 bg-black rounded-full"></div>
-                    </div>
-                    {/* Bot Antenna */}
-                    <div className="w-0.5 h-3 bg-black mx-auto"></div>
-                    <div className="w-1.5 h-1.5 bg-black rounded-full mx-auto -mt-0.5"></div>
-                  </div>
-                </div>
-                <h2 className="text-2xl font-semibold mb-4">Welcome to AI Portfolio Assistant</h2>
+                <RobotIcon className="w-16 h-16 text-gray-200 mx-auto mb-6" />
+                <h2 className="text-2xl font-semibold mb-4 text-gray-200">Welcome to AI Portfolio Assistant</h2>
                 <p className="text-gray-400 text-lg">
                   Ask me anything about cryptocurrency and your portfolio
                 </p>
@@ -270,14 +278,14 @@ export default function ChatPage() {
               <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-2xl rounded-2xl px-6 py-4 ${
                   message.role === 'user' 
-                    ? 'bg-white text-black ml-8' 
-                    : 'bg-gray-900 text-white mr-8 border border-gray-800'
+                    ? 'bg-emerald-500 text-slate-950 ml-8' 
+                    : 'bg-slate-900 text-gray-200 mr-8 border border-slate-800'
                 }`}>
                   <div className="whitespace-pre-wrap leading-relaxed">
                     {message.content}
                   </div>
                   <div className={`text-xs mt-3 ${
-                    message.role === 'user' ? 'text-gray-600' : 'text-gray-500'
+                    message.role === 'user' ? 'text-slate-700' : 'text-gray-400'
                   }`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
@@ -287,12 +295,12 @@ export default function ChatPage() {
             
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-gray-900 text-white rounded-2xl px-6 py-4 mr-8 border border-gray-800">
+                <div className="bg-slate-900 text-gray-200 rounded-2xl px-6 py-4 mr-8 border border-slate-800">
                   <div className="flex items-center space-x-3">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                     <span className="text-gray-400 text-sm">AI is typing...</span>
                   </div>
@@ -305,9 +313,9 @@ export default function ChatPage() {
         </ScrollArea>
 
         {/* Input */}
-        <div className="border-t border-gray-800 p-4">
+        <div className="border-t border-slate-800 p-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center space-x-4 bg-black border border-white rounded-xl px-4 py-3">
+            <div className="flex items-center space-x-4 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3">
               <Input
                 ref={inputRef}
                 value={inputValue}
@@ -315,13 +323,13 @@ export default function ChatPage() {
                 onKeyDown={handleKeyPress}
                 placeholder="Type your message..."
                 disabled={isSending}
-                className="flex-1 border-none bg-transparent text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
+                className="flex-1 border-none bg-transparent text-gray-200 placeholder-gray-400 focus:ring-0 focus:outline-none"
               />
               <Button
                 onClick={sendMessage}
                 disabled={!inputValue.trim() || isSending}
                 size="sm"
-                className="bg-transparent border border-white text-white hover:bg-gray-800 rounded-xl px-4 py-2 h-auto"
+                className="bg-transparent border border-slate-800 text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-xl px-4 py-2 h-auto"
               >
                 <Send className="h-4 w-4" />
               </Button>

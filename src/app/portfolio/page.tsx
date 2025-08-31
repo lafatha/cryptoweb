@@ -408,20 +408,7 @@ export default function PortfolioPage() {
           Sambungkan wallet MetaMask Anda untuk melihat portofolio cryptocurrency dan melacak nilai aset secara real-time.
         </p>
       </div>
-      <div className="flex gap-3">
-        <Button onClick={() => setShowWalletModal(true)} size="lg">
-          <Wallet className="h-5 w-5 mr-2" />
-          Connect Wallet
-        </Button>
-        <Button 
-          onClick={() => setShowManualEntryModal(true)} 
-          size="lg"
-          variant="outline"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Asset
-        </Button>
-      </div>
+  {/* Removed duplicate Connect Wallet and Add Asset buttons */}
     </motion.div>
   )
 

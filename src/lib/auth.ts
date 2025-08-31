@@ -100,12 +100,12 @@ const authConfig = {
       return token
     },
     async session({ session, token }: { session: any; token: any }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.walletAddress = token.walletAddress as string
-        session.user.isWallet = token.isWallet as boolean
-      }
-      return session
+      // Always return a valid session object
+      if (!session.user) session.user = {};
+      session.user.id = token?.id || null;
+      session.user.walletAddress = token?.walletAddress || null;
+      session.user.isWallet = token?.isWallet || false;
+      return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

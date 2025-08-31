@@ -80,6 +80,9 @@ class CoinGeckoAPI {
           price_change_percentage,
         },
       })
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Invalid or empty response from CoinGecko API')
+      }
       return response.data
     } catch (error) {
       console.error('Error fetching market data:', error)
@@ -107,6 +110,9 @@ class CoinGeckoAPI {
           include_24hr_change,
         },
       })
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error('Invalid or empty response from CoinGecko API')
+      }
       return response.data
     } catch (error) {
       console.error('Error fetching specific coins:', error)
@@ -136,6 +142,9 @@ class CoinGeckoAPI {
           include_last_updated_at,
         },
       })
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('Invalid or empty response from CoinGecko API')
+      }
       return response.data
     } catch (error) {
       console.error('Error fetching simple prices:', error)
@@ -160,6 +169,9 @@ class CoinGeckoAPI {
           interval,
         },
       })
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('Invalid or empty response from CoinGecko API')
+      }
       return response.data
     } catch (error) {
       console.error('Error fetching historical data:', error)

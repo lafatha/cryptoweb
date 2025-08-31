@@ -101,12 +101,18 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
   if (!isConnected || !address || isDisconnecting) {
     return (
       <Button 
-        onClick={onConnect || (() => {})} 
-        variant="outline" 
+        onClick={onConnect || (() => {})}
+        className="bg-[#1c1c1c] text-white flex items-center gap-2 hover:bg-[#333] transition-colors rounded-md"
         size="sm"
         disabled={isDisconnecting}
       >
-        {isDisconnecting ? 'Disconnecting...' : 'Connect Wallet'}
+        {/* Wallet Icon */}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+          <path d="M12.6667 3.33331H3.33333C2.59695 3.33331 2 3.93027 2 4.66665V11.3333C2 12.0697 2.59695 12.6666 3.33333 12.6666H12.6667C13.403 12.6666 14 12.0697 14 11.3333V4.66665C14 3.93027 13.403 3.33331 12.6667 3.33331Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2 6.66669H14" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M10.6667 9.33331H10.6733" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        {isDisconnecting ? 'Disconnecting...' : 'Start Tracking'}
       </Button>
     )
   }
