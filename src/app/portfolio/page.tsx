@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount, useBalance } from 'wagmi'
+import { usePortfolio } from '@/contexts/portfolio-context'
 import { motion } from "framer-motion"
 import { formatUnits, parseAbi } from 'viem'
 import { readContracts } from 'wagmi/actions'
@@ -31,6 +32,15 @@ import { WalletButton } from "@/components/WalletButton"
 import { WalletConnectModal } from "@/components/WalletConnectModal"
 import { CryptoIcon } from "@/components/crypto-icon"
 import AgentDock from "@/components/AgentDock"
+import { ManualPortfolioModal, type ManualPortfolioEntry } from "@/components/manual-portfolio-modal"
+import { 
+  getManualPortfolioEntries, 
+  addManualPortfolioEntry, 
+  enrichManualEntriesWithPricing,
+  convertManualEntriesToTokenBalance,
+  getTokenIdsFromManualEntries,
+  removeManualPortfolioEntry
+} from "@/lib/manual-portfolio"
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from 'recharts'
 
 // ERC20 ABI untuk membaca balance dan decimals
@@ -61,6 +71,9 @@ interface TokenBalance {
   costBasis?: number
   roi?: number
   sparklineData?: { time: string; value: number }[]
+  isManual?: boolean
+  manualEntryId?: string
+  notes?: string
 }
 
 interface PortfolioData {
@@ -91,21 +104,39 @@ const formatTokenAmount = (amount: string, decimals: number) => {
 export default function PortfolioPage() {
   const { address, isConnected, chain } = useAccount()
   const { data: ethBalance } = useBalance({ address })
+  const { 
+    portfolioData, 
+    setPortfolioData, 
+    coinPrices, 
+    setCoinPrices, 
+    loading, 
+    setLoading,
+    refreshPortfolio,
+    refreshKey
+  } = usePortfolio()
+  
   const [showWalletModal, setShowWalletModal] = useState(false)
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null)
-  const [loading, setLoading] = useState(false)
   const [selectedTimeframe, setSelectedTimeframe] = useState('90D')
   const [selectedAsset, setSelectedAsset] = useState<TokenBalance | null>(null)
-  const [coinPrices, setCoinPrices] = useState<Record<string, any>>({})
   const [chartLoading, setChartLoading] = useState(false)
   const [showAgentDock, setShowAgentDock] = useState(false)
+  const [showManualEntryModal, setShowManualEntryModal] = useState(false)
+  const [manualEntries, setManualEntries] = useState<ManualPortfolioEntry[]>([])
 
-  // Fetch portfolio data when wallet is connected
+  // Load manual entries on component mount
+  useEffect(() => {
+    setManualEntries(getManualPortfolioEntries())
+  }, [refreshKey])
+
+  // Fetch portfolio data when wallet is connected or manual entries change
   useEffect(() => {
     if (isConnected && address) {
       fetchPortfolioData()
+    } else if (manualEntries.length > 0) {
+      // If wallet not connected but we have manual entries, still fetch coin prices
+      fetchPortfolioData()
     }
-  }, [isConnected, address, chain])
+  }, [isConnected, address, chain, manualEntries, refreshKey])
 
   // Fetch coin prices
   useEffect(() => {
@@ -175,7 +206,12 @@ export default function PortfolioPage() {
 
   const fetchCoinPrices = async () => {
     try {
-      const response = await fetch('/api/coingecko/simple-prices?ids=ethereum,tether,usd-coin,chainlink,uniswap&vs_currencies=usd&include_24hr_change=true')
+      // Get token IDs from both wallet tokens and manual entries
+      const walletTokens = ['ethereum', 'tether', 'usd-coin', 'chainlink', 'uniswap']
+      const manualTokenIds = getTokenIdsFromManualEntries(manualEntries)
+      const allTokenIds = [...new Set([...walletTokens, ...manualTokenIds])]
+      
+      const response = await fetch(`/api/coingecko/simple-prices?ids=${allTokenIds.join(',')}&vs_currencies=usd&include_24hr_change=true`)
       if (response.ok) {
         const data = await response.json()
         setCoinPrices(data)
@@ -186,14 +222,12 @@ export default function PortfolioPage() {
   }
 
   const fetchPortfolioData = async () => {
-    if (!address) return
-    
     setLoading(true)
     try {
       const holdings: TokenBalance[] = []
       
-      // Add ETH balance
-      if (ethBalance) {
+      // Add ETH balance if wallet is connected
+      if (ethBalance && isConnected && address) {
         const ethPrice = coinPrices.ethereum?.usd || 2500
         const ethAmount = parseFloat(ethBalance.formatted)
         const ethMarketValue = ethAmount * ethPrice
@@ -211,8 +245,9 @@ export default function PortfolioPage() {
         })
       }
 
-      // Fetch ERC20 token balances
-      try {
+      // Fetch ERC20 token balances if wallet is connected
+      if (isConnected && address) {
+        try {
         const tokenContracts = COMMON_TOKENS.map(token => [
           {
             address: token.address as `0x${string}`,
@@ -261,9 +296,15 @@ export default function PortfolioPage() {
             })
           }
         }
-      } catch (error) {
-        console.error('Error fetching token balances:', error)
+              } catch (error) {
+          console.error('Error fetching token balances:', error)
+        }
       }
+
+      // Add manual portfolio entries
+      const enrichedManualEntries = enrichManualEntriesWithPricing(manualEntries, coinPrices)
+      const manualHoldings = convertManualEntriesToTokenBalance(enrichedManualEntries)
+      holdings.push(...manualHoldings)
 
       // Sort by market value
       holdings.sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
@@ -318,6 +359,25 @@ export default function PortfolioPage() {
     return data
   }
 
+  const handleAddManualEntry = async (entry: Omit<ManualPortfolioEntry, 'id' | 'createdAt'>) => {
+    try {
+      addManualPortfolioEntry(entry)
+      refreshPortfolio() // Trigger refresh using context
+    } catch (error) {
+      console.error('Error adding manual portfolio entry:', error)
+      throw error
+    }
+  }
+
+  const handleRemoveManualEntry = (entryId: string) => {
+    try {
+      removeManualPortfolioEntry(entryId)
+      refreshPortfolio() // Trigger refresh using context
+    } catch (error) {
+      console.error('Error removing manual portfolio entry:', error)
+    }
+  }
+
   const EmptyState = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -333,10 +393,20 @@ export default function PortfolioPage() {
           Sambungkan wallet MetaMask Anda untuk melihat portofolio cryptocurrency dan melacak nilai aset secara real-time.
         </p>
       </div>
-      <Button onClick={() => setShowWalletModal(true)} size="lg">
-        <Wallet className="h-5 w-5 mr-2" />
-        Connect Wallet
-      </Button>
+      <div className="flex gap-3">
+        <Button onClick={() => setShowWalletModal(true)} size="lg">
+          <Wallet className="h-5 w-5 mr-2" />
+          Connect Wallet
+        </Button>
+        <Button 
+          onClick={() => setShowManualEntryModal(true)} 
+          size="lg"
+          variant="outline"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Asset
+        </Button>
+      </div>
     </motion.div>
   )
 
@@ -366,7 +436,7 @@ export default function PortfolioPage() {
     )
   }
 
-  if (!isConnected) {
+  if (!isConnected && manualEntries.length === 0) {
     return (
       <>
         <WalletConnectModal
@@ -377,6 +447,11 @@ export default function PortfolioPage() {
             window.location.href = '/auth/signin'
           }}
         />
+        <ManualPortfolioModal
+          isOpen={showManualEntryModal}
+          onClose={() => setShowManualEntryModal(false)}
+          onSubmit={handleAddManualEntry}
+        />
         <div className="container max-w-6xl mx-auto p-6">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -385,7 +460,18 @@ export default function PortfolioPage() {
                 Track your cryptocurrency portfolio and monitor performance
               </p>
             </div>
-            <WalletButton onConnect={() => setShowWalletModal(true)} />
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowManualEntryModal(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Asset
+              </Button>
+              <WalletButton onConnect={() => setShowWalletModal(true)} />
+            </div>
           </div>
           <EmptyState />
         </div>
@@ -418,7 +504,7 @@ export default function PortfolioPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={fetchPortfolioData} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={() => { refreshPortfolio(); fetchPortfolioData(); }} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
@@ -578,6 +664,15 @@ export default function PortfolioPage() {
                   <CardTitle>Holdings</CardTitle>
                   <CardDescription>Your current cryptocurrency positions</CardDescription>
                 </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowManualEntryModal(true)}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Asset
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -599,25 +694,33 @@ export default function PortfolioPage() {
                 </div>
               ) : portfolioData && portfolioData.holdings.length > 0 ? (
                 <div className="space-y-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Asset</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                        <TableHead className="text-right">Market Value</TableHead>
-                        <TableHead className="text-right">24h Change</TableHead>
-                        <TableHead className="text-right">24h Chart</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[200px]">Asset</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Balance</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Market Value</TableHead>
+                          <TableHead className="text-right min-w-[100px]">24h Change</TableHead>
+                          <TableHead className="text-right min-w-[80px]">24h Chart</TableHead>
+                          <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {portfolioData.holdings.map((holding) => (
                         <TableRow key={holding.symbol} className="hover:bg-muted/50">
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <CryptoIcon symbol={holding.symbol} size={32} />
-                              <div>
-                                <div className="font-medium">{holding.symbol}</div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{holding.symbol}</span>
+                                  {holding.isManual && (
+                                    <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                                      M
+                                    </Badge>
+                                  )}
+                                </div>
                                 <div className="text-sm text-muted-foreground">{holding.name}</div>
                               </div>
                             </div>
@@ -654,33 +757,46 @@ export default function PortfolioPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {holding.sparklineData && (
-                              <div className="w-16 h-8">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={holding.sparklineData}>
-                                    <Line
-                                      type="monotone"
-                                      dataKey="value"
-                                      stroke={holding.priceChange24h && holding.priceChange24h >= 0 ? '#10b981' : '#ef4444'}
-                                      strokeWidth={1.5}
-                                      dot={false}
-                                    />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </div>
-                            )}
+                            <div className="flex justify-end">
+                              {holding.sparklineData && (
+                                <div className="w-16 h-8">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={holding.sparklineData}>
+                                      <Line
+                                        type="monotone"
+                                        dataKey="value"
+                                        stroke={holding.priceChange24h && holding.priceChange24h >= 0 ? '#10b981' : '#ef4444'}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                      />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Dialog>
-                              <DialogTrigger asChild>
+                            <div className="flex items-center justify-end gap-2">
+                              {holding.isManual && holding.manualEntryId && (
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
-                                  onClick={() => setSelectedAsset(holding)}
+                                  onClick={() => handleRemoveManualEntry(holding.manualEntryId!)}
+                                  className="text-red-500 hover:text-red-700"
                                 >
-                                  <ArrowUpRight className="h-4 w-4" />
+                                  <Plus className="h-4 w-4 rotate-45" />
                                 </Button>
-                              </DialogTrigger>
+                              )}
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => setSelectedAsset(holding)}
+                                  >
+                                    <ArrowUpRight className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>{holding.name} ({holding.symbol})</DialogTitle>
@@ -734,12 +850,14 @@ export default function PortfolioPage() {
                                   )}
                                 </div>
                               </DialogContent>
-                            </Dialog>
+                                                          </Dialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
-                    </TableBody>
-                  </Table>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8 space-y-4">
@@ -749,9 +867,17 @@ export default function PortfolioPage() {
                   <div>
                     <h3 className="font-medium">No assets found</h3>
                     <p className="text-sm text-muted-foreground">
-                      Add some cryptocurrency to your wallet to start tracking your portfolio.
+                      Add some cryptocurrency to your wallet or manually add assets to start tracking your portfolio.
                     </p>
                   </div>
+                  <Button 
+                    onClick={() => setShowManualEntryModal(true)}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Asset Manually
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -766,6 +892,13 @@ export default function PortfolioPage() {
             onToggle={() => setShowAgentDock(!showAgentDock)}
           />
         )}
+
+        {/* Manual Portfolio Entry Modal */}
+        <ManualPortfolioModal
+          isOpen={showManualEntryModal}
+          onClose={() => setShowManualEntryModal(false)}
+          onSubmit={handleAddManualEntry}
+        />
       </div>
     </>
   )

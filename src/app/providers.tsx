@@ -4,6 +4,7 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@/components/theme-provider'
+import { PortfolioProvider } from '@/contexts/portfolio-context'
 import { config } from '@/lib/wagmi'
 
 const queryClient = new QueryClient()
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             defaultTheme="system"
             storageKey="crypto-finance-theme"
           >
-            {children}
+            <PortfolioProvider>
+              {children}
+            </PortfolioProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </WagmiProvider>
