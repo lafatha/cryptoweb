@@ -46,10 +46,10 @@ export default function DashboardPage() {
 
   // Calculate portfolio statistics
   const totalValue = portfolioData?.totalValue || 0
-  const totalPnL24h = portfolioData?.totalPnL24h || 0
+  const totalValueChange = portfolioData?.totalValueChange || 0
   const totalAssets = portfolioData?.holdings?.length || 0
   const bestPerformer = portfolioData?.holdings?.reduce((best, current) => {
-    if (!best || (current.pnl24hPercent || 0) > (best.pnl24hPercent || 0)) {
+    if (!best || (current.priceChange24h || 0) > (best.priceChange24h || 0)) {
       return current
     }
     return best
@@ -59,16 +59,16 @@ export default function DashboardPage() {
     {
       title: "Portfolio Value",
       value: formatCurrency(totalValue),
-      change: portfolioData?.totalPnLPercent ? `${portfolioData.totalPnLPercent >= 0 ? '+' : ''}${portfolioData.totalPnLPercent.toFixed(2)}%` : "0%",
-      changeType: (portfolioData?.totalPnLPercent || 0) >= 0 ? "positive" as const : "negative" as const,
+      change: totalValueChange ? `${totalValueChange >= 0 ? '+' : ''}${totalValueChange.toFixed(2)}%` : "0%",
+      changeType: totalValueChange >= 0 ? "positive" as const : "negative" as const,
       icon: DollarSign,
     },
     {
-      title: "24h P&L",
-      value: `${totalPnL24h >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnL24h))}`,
-      change: portfolioData?.totalPnL24hPercent ? `${portfolioData.totalPnL24hPercent >= 0 ? '+' : ''}${portfolioData.totalPnL24hPercent.toFixed(2)}%` : "0%",
-      changeType: totalPnL24h >= 0 ? "positive" as const : "negative" as const,
-      icon: totalPnL24h >= 0 ? TrendingUp : TrendingDown,
+      title: "24h Change",
+      value: `${totalValueChange >= 0 ? '+' : ''}${totalValueChange.toFixed(2)}%`,
+      change: totalValueChange ? `${totalValueChange >= 0 ? '+' : ''}${totalValueChange.toFixed(2)}%` : "0%",
+      changeType: totalValueChange >= 0 ? "positive" as const : "negative" as const,
+      icon: totalValueChange >= 0 ? TrendingUp : TrendingDown,
     },
     {
       title: "Total Assets",
@@ -80,8 +80,8 @@ export default function DashboardPage() {
     {
       title: "Best Performer",
       value: bestPerformer?.symbol || "N/A",
-      change: bestPerformer?.pnl24hPercent ? `+${bestPerformer.pnl24hPercent.toFixed(1)}%` : "0%",
-      changeType: (bestPerformer?.pnl24hPercent || 0) >= 0 ? "positive" as const : "negative" as const,
+      change: bestPerformer?.priceChange24h ? `${bestPerformer.priceChange24h >= 0 ? '+' : ''}${bestPerformer.priceChange24h.toFixed(1)}%` : "0%",
+      changeType: (bestPerformer?.priceChange24h || 0) >= 0 ? "positive" as const : "negative" as const,
       icon: TrendingUp,
     },
   ]

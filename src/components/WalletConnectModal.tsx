@@ -74,11 +74,14 @@ export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConn
   // Handle successful wallet connection
   useEffect(() => {
     if (isConnected && address && isOpen) {
-      // Close modal tanpa toast
-      setTimeout(() => {
+      // Close modal with a delay to show connection success
+      const timer = setTimeout(() => {
         onClose()
       }, 500)
-      console.log('Wallet connected:', address)
+      
+      console.log('Wallet connected successfully:', address)
+      
+      return () => clearTimeout(timer)
     }
   }, [isConnected, address, isOpen, onClose])
 
@@ -90,10 +93,16 @@ export function WalletConnectModal({ isOpen, onClose, onEmailClick }: WalletConn
 
   useEffect(() => {
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown as any)
-      return () => document.removeEventListener('keydown', handleKeyDown as any)
+      const handleEsc = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }
+      
+      document.addEventListener('keydown', handleEsc)
+      return () => document.removeEventListener('keydown', handleEsc)
     }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

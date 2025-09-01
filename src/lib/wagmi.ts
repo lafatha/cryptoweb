@@ -11,10 +11,8 @@ if (!projectId) {
 export const config = createConfig({
   chains: [mainnet, polygon, bsc],
   connectors: [
-    injected({
-      target: 'metaMask',
-    }),
-    // Disable WalletConnect temporarily to fix connection issues
+    injected(), // Simplified injected connector for better compatibility
+    // Only add WalletConnect if projectId is available
     ...(projectId && projectId !== 'demo-project-id' ? [
       walletConnect({
         projectId,
@@ -24,13 +22,13 @@ export const config = createConfig({
           url: typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000',
           icons: []
         },
-        showQrModal: false, // Disable QR modal to prevent subscription issues
+        showQrModal: false,
       })
     ] : []),
+    // Only add Coinbase if projectId is available
     ...(projectId && projectId !== 'demo-project-id' ? [
       coinbaseWallet({
         appName: 'CryptoFinance',
-        appLogoUrl: undefined, // Remove logo URL to prevent loading issues
         preference: 'smartWalletOnly'
       })
     ] : [])
@@ -40,12 +38,13 @@ export const config = createConfig({
     [polygon.id]: http(),
     [bsc.id]: http(),
   },
-  // Disable persistence to force clean state on disconnect
-  storage: null,
-  // Add polyfill config to prevent EventEmitter issues
-  ssr: false,
-  syncConnectedChain: false,
 })
+
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}
 
 declare module 'wagmi' {
   interface Register {

@@ -83,14 +83,33 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
   }
 
   const handleDisconnect = async () => {
+    if (isDisconnecting) return // Prevent multiple disconnect calls
+    
     try {
       setIsDisconnecting(true)
       console.log('Disconnecting wallet...')
+      
+      // Clear any cached data first
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('wagmi.connected')
+          localStorage.removeItem('wagmi.wallet')
+          localStorage.removeItem('wagmi.cache')
+        } catch (error) {
+          console.warn('Failed to clear localStorage:', error)
+        }
+      }
       
       // Call disconnect
       disconnect()
       
       console.log('Disconnect called successfully')
+      
+      // Force state reset after a short delay
+      setTimeout(() => {
+        setIsDisconnecting(false)
+      }, 1000)
+      
     } catch (error) {
       console.error('Disconnect error:', error)
       setIsDisconnecting(false)
@@ -98,7 +117,7 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
   }
 
   // Early return jika tidak ada address dan tidak connected, atau sedang disconnecting
-  if (!isConnected || !address || isDisconnecting) {
+  if (!isConnected || !address) {
     return (
       <Button 
         onClick={onConnect || (() => {})}
