@@ -26,7 +26,7 @@ const sidebarItems = [
   },
   {
     title: "Markets",
-    href: "/markets",
+    href: "/dashboard/markets",
     icon: TrendingUp,
   },
   {
@@ -35,13 +35,13 @@ const sidebarItems = [
     icon: PieChart,
   },
   {
-    title: "AI Advisor",
-    href: "/dashboard/advisor",
+    title: "AI Agent",
+    href: "/dashboard/chat",
     icon: Brain,
   },
   {
     title: "News",
-    href: "/news",
+    href: "/dashboard/news",
     icon: Newspaper,
   },
 ]
@@ -81,7 +81,12 @@ export function Sidebar({ className }: SidebarProps) {
         <nav className="flex-1 p-2 space-y-1">
           {sidebarItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || 
+              (item.href === "/dashboard" && pathname === "/dashboard") ||
+              (item.href === "/dashboard/chat" && pathname === "/dashboard/chat") ||
+              (item.href === "/dashboard/markets" && pathname === "/dashboard/markets") ||
+              (item.href === "/dashboard/portfolio" && pathname === "/dashboard/portfolio") ||
+              (item.href === "/dashboard/news" && pathname === "/dashboard/news")
             
             return (
               <Link
@@ -90,8 +95,8 @@ export function Sidebar({ className }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent hover:text-accent-foreground",
+                    ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-black"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white",
                   collapsed && "justify-center px-2"
                 )}
               >
@@ -119,7 +124,12 @@ export function Sidebar({ className }: SidebarProps) {
             <nav className="flex-1 p-2 space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href || 
+                  (item.href === "/dashboard" && pathname === "/dashboard") ||
+                  (item.href === "/dashboard/chat" && pathname === "/dashboard/chat") ||
+                  (item.href === "/dashboard/markets" && pathname === "/dashboard/markets") ||
+                  (item.href === "/dashboard/portfolio" && pathname === "/dashboard/portfolio") ||
+                  (item.href === "/dashboard/news" && pathname === "/dashboard/news")
                 
                 return (
                   <Link
@@ -128,8 +138,8 @@ export function Sidebar({ className }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent hover:text-accent-foreground"
+                        ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-black"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
                     )}
                   >
                     <Icon className="h-4 w-4" />
