@@ -8,8 +8,11 @@ export function useCryptoMarkets(page = 1, perPage = 100) {
     ['crypto-markets', page, perPage],
     () => coinGeckoAPI.getMarkets('usd', 'market_cap_desc', perPage, page),
     {
-      refreshInterval: 30000, // Refresh every 30 seconds
-      revalidateOnFocus: true,
+      refreshInterval: 15000, // Refresh every 15 seconds for faster updates
+      revalidateOnFocus: false, // Prevent unnecessary refetches
+      dedupingInterval: 5000, // Dedupe requests within 5 seconds
+      errorRetryCount: 3,
+      errorRetryInterval: 2000,
     }
   )
 
@@ -27,8 +30,11 @@ export function usePopularCryptos() {
     'popular-cryptos',
     () => coinGeckoAPI.getCoinsByIds(POPULAR_CRYPTO_IDS),
     {
-      refreshInterval: 15000, // Refresh every 15 seconds for popular coins
-      revalidateOnFocus: true,
+      refreshInterval: 10000, // Refresh every 10 seconds for faster updates
+      revalidateOnFocus: false, // Prevent unnecessary refetches
+      dedupingInterval: 3000, // Dedupe requests within 3 seconds
+      errorRetryCount: 3,
+      errorRetryInterval: 1500,
     }
   )
 
@@ -46,8 +52,11 @@ export function useTickerData() {
     'ticker-data',
     () => coinGeckoAPI.getCoinsByIds(POPULAR_CRYPTO_IDS.slice(0, 8)),
     {
-      refreshInterval: 10000, // Refresh every 10 seconds for ticker
-      revalidateOnFocus: true,
+      refreshInterval: 8000, // Refresh every 8 seconds for faster ticker updates
+      revalidateOnFocus: false, // Prevent unnecessary refetches
+      dedupingInterval: 2000, // Dedupe requests within 2 seconds
+      errorRetryCount: 2,
+      errorRetryInterval: 1000,
     }
   )
 
@@ -115,8 +124,11 @@ export function useSimplePrices(coinIds: string[]) {
     coinIds.length > 0 ? ['simple-prices', coinIds.join(',')] : null,
     () => coinGeckoAPI.getSimplePrice(coinIds, ['usd'], false, false, true),
     {
-      refreshInterval: 5000, // Very frequent updates for price monitoring
-      revalidateOnFocus: true,
+      refreshInterval: 3000, // Very frequent updates for price monitoring (3 seconds)
+      revalidateOnFocus: false, // Prevent unnecessary refetches
+      dedupingInterval: 1000, // Dedupe requests within 1 second
+      errorRetryCount: 3,
+      errorRetryInterval: 1000,
     }
   )
 

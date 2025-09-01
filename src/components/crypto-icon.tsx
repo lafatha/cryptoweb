@@ -18,7 +18,7 @@ const CRYPTO_LOGOS: Record<string, string> = {
   'UNI': '/crypto-icons/uni.svg',
 }
 
-export function CryptoIcon({ symbol, size = 32, className = '' }: CryptoIconProps) {
+export function CryptoIcon({ symbol, size = 25, className = '' }: CryptoIconProps) {
   const [imageError, setImageError] = useState(false)
   
   const logoUrl = CRYPTO_LOGOS[symbol.toUpperCase()]

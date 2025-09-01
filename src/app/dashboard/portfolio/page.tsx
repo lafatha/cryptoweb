@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useAccount, useBalance } from 'wagmi'
-import { usePortfolio } from '@/contexts/portfolio-context'
 import { motion } from "framer-motion"
 import { formatUnits, parseAbi } from 'viem'
+import { useAccount, useBalance } from 'wagmi'
 import { readContracts } from 'wagmi/actions'
+import { usePortfolio } from '@/contexts/portfolio-context'
 import { config } from '@/lib/wagmi'
 import { 
   aggregateTokenHoldings, 
@@ -22,7 +22,6 @@ import {
 } from '@/lib/pricing'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -131,6 +130,7 @@ export default function DashboardPortfolioPage() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('90D')
   const [selectedAsset, setSelectedAsset] = useState<TokenBalance | null>(null)
   const [chartLoading, setChartLoading] = useState(false)
+  const [priceLoading, setPriceLoading] = useState(false)
 
   const [showManualEntryModal, setShowManualEntryModal] = useState(false)
   const [manualEntries, setManualEntries] = useState<ManualPortfolioEntry[]>([])
@@ -244,6 +244,7 @@ export default function DashboardPortfolioPage() {
   }
 
   const fetchCoinPrices = async () => {
+    setPriceLoading(true)
     try {
       // Get token IDs from both wallet tokens and manual entries
       const walletTokens = [
@@ -269,6 +270,8 @@ export default function DashboardPortfolioPage() {
       setCoinPrices(compatibleData)
     } catch (error) {
       console.error('Error fetching coin prices:', error)
+    } finally {
+      setPriceLoading(false)
     }
   }
 
@@ -350,10 +353,61 @@ export default function DashboardPortfolioPage() {
         }
       }
 
-      // Add manual portfolio entries
+      // Add manual portfolio entries (for non-connected users)
       const enrichedManualEntries = enrichManualEntriesWithPricing(manualEntries, coinPrices)
       const manualHoldings = convertManualEntriesToTokenBalance(enrichedManualEntries)
       holdings.push(...manualHoldings)
+
+      // Add wallet portfolio entries (for connected users)
+      if (isConnected && address && walletPortfolio.length > 0) {
+        const symbolToNameMap: Record<string, string> = {
+          'BTC': 'Bitcoin',
+          'ETH': 'Ethereum',
+          'SOL': 'Solana',
+          'ADA': 'Cardano',
+          'DOT': 'Polkadot',
+          'MATIC': 'Polygon',
+          'LINK': 'Chainlink',
+          'UNI': 'Uniswap',
+          'LTC': 'Litecoin',
+          'BCH': 'Bitcoin Cash',
+          'USDT': 'Tether',
+          'USDC': 'USD Coin',
+          'BNB': 'BNB',
+          'XRP': 'XRP',
+          'DOGE': 'Dogecoin',
+          'AVAX': 'Avalanche',
+          'SHIB': 'Shiba Inu',
+          'ATOM': 'Cosmos',
+          'NEAR': 'NEAR Protocol',
+          'ALGO': 'Algorand'
+        }
+        
+        const walletHoldings = walletPortfolio.map(entry => {
+          const priceKey = getCoinGeckoIdFromSymbol(entry.symbol)
+          const price = priceKey ? coinPrices[priceKey]?.usd || null : null
+          const priceChange = priceKey ? coinPrices[priceKey]?.usd_24h_change || null : null
+          const marketValue = price ? entry.amount * price : undefined
+          
+          return {
+            symbol: entry.symbol,
+            name: symbolToNameMap[entry.symbol] || entry.symbol,
+            balance: entry.amount.toString(),
+            decimals: 18, // Default to 18 decimals
+            address: 'wallet-portfolio',
+            price,
+            priceChange24h: priceChange,
+            marketValue,
+            costBasis: entry.buyPrice * entry.amount,
+            roi: marketValue && entry.buyPrice ? ((marketValue - (entry.buyPrice * entry.amount)) / (entry.buyPrice * entry.amount)) * 100 : undefined,
+            sparklineData: generateSparklineData(price || 0, priceChange || 0),
+            isManual: true,
+            manualEntryId: entry.id,
+            notes: entry.notes
+          }
+        })
+        holdings.push(...walletHoldings)
+      }
 
       // Aggregate duplicate tokens and calculate proper totals
       const aggregatedHoldings = aggregateTokenHoldings(holdings)
@@ -439,8 +493,19 @@ export default function DashboardPortfolioPage() {
       } else {
         // Fallback to local storage for non-connected users
         addManualPortfolioEntry(entry)
+        // Update local state immediately
+        const updatedEntries = getManualPortfolioEntries()
+        setManualEntries(updatedEntries)
       }
-      refreshPortfolio() // Trigger refresh using context
+      
+      // Force refresh portfolio data and clear cache
+      refreshPortfolio()
+      await fetchPortfolioData()
+      
+      // Also update the context portfolio data
+      setTimeout(() => {
+        fetchPortfolioData()
+      }, 100)
     } catch (error) {
       console.error('Error adding manual portfolio entry:', error)
       throw error
@@ -460,8 +525,19 @@ export default function DashboardPortfolioPage() {
       } else {
         // Fallback to local storage for non-connected users
         removeManualPortfolioEntry(entryId)
+        // Update local state immediately
+        const updatedEntries = getManualPortfolioEntries()
+        setManualEntries(updatedEntries)
       }
-      refreshPortfolio() // Trigger refresh using context
+      
+      // Force refresh portfolio data and clear cache
+      refreshPortfolio()
+      await fetchPortfolioData()
+      
+      // Also update the context portfolio data
+      setTimeout(() => {
+        fetchPortfolioData()
+      }, 100)
     } catch (error) {
       console.error('Error removing manual portfolio entry:', error)
     }
@@ -795,7 +871,7 @@ export default function DashboardPortfolioPage() {
                         <TableRow key={holding.symbol} className="hover:bg-muted/50">
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <CryptoIcon symbol={holding.symbol} size={32} />
+                              <CryptoIcon symbol={holding.symbol} size={25} />
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">{holding.symbol}</span>
@@ -824,9 +900,7 @@ export default function DashboardPortfolioPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? (
-                              <div className={`flex items-center justify-end gap-1 ${
-                                holding.priceChange24h >= 0 ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'
-                              }`}>
+                              <div className="flex items-center justify-end gap-1 text-gray-700 dark:text-gray-300">
                                 {holding.priceChange24h >= 0 ? (
                                   <TrendingUp className="h-3 w-3" />
                                 ) : (
@@ -849,7 +923,7 @@ export default function DashboardPortfolioPage() {
                                       <Line
                                         type="monotone"
                                         dataKey="value"
-                                        stroke={holding.priceChange24h && holding.priceChange24h >= 0 ? '#10b981' : '#ef4444'}
+                                        stroke="#808080"
                                         strokeWidth={1.5}
                                         dot={false}
                                       />
@@ -898,9 +972,7 @@ export default function DashboardPortfolioPage() {
                                     </div>
                                     <div>
                                       <p className="text-sm text-muted-foreground">24h Change</p>
-                                      <p className={`text-lg font-semibold ${
-                                        holding.priceChange24h && holding.priceChange24h >= 0 ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'
-                                      }`}>
+                                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                                         {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? 
                                           `${holding.priceChange24h >= 0 ? '+' : ''}${(holding.priceChange24h || 0).toFixed(2)}%` : '—'}
                                       </p>

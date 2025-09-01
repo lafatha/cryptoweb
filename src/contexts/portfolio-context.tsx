@@ -44,7 +44,7 @@ const PortfolioContext = createContext<PortfolioContextType | undefined>(undefin
 
 const PORTFOLIO_STORAGE_KEY = 'crypto-dashboard-portfolio-cache'
 const PRICES_STORAGE_KEY = 'crypto-dashboard-prices-cache'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const CACHE_DURATION = 2 * 60 * 1000 // 2 minutes for faster updates
 
 interface PortfolioProviderProps {
   children: ReactNode

@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PieChart as PieChartIcon } from "lucide-react"
@@ -16,7 +17,7 @@ const CHART_COLORS = [
   "#C0C0C0", // Very light gray
 ]
 
-export function PortfolioChart() {
+export const PortfolioChart = React.memo(function PortfolioChart() {
   const { portfolioData } = usePortfolio()
 
   // Process portfolio data to get top 5 holdings + others
@@ -186,4 +187,4 @@ export function PortfolioChart() {
       </CardContent>
     </Card>
   )
-}
+})

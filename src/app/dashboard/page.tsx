@@ -4,9 +4,18 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useAccount } from "wagmi"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CryptoTable } from "@/components/crypto-table"
-import { PortfolioChart } from "@/components/portfolio-chart"
-import { NewsFeed } from "@/components/news-feed"
+import dynamic from "next/dynamic"
+
+// Lazy load heavy components for better performance
+const CryptoTable = dynamic(() => import("@/components/crypto-table").then(mod => ({ default: mod.CryptoTable })), {
+  loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg" />
+})
+const PortfolioChart = dynamic(() => import("@/components/portfolio-chart").then(mod => ({ default: mod.PortfolioChart })), {
+  loading: () => <div className="h-80 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg" />
+})
+const NewsFeed = dynamic(() => import("@/components/news-feed").then(mod => ({ default: mod.NewsFeed })), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg" />
+})
 import { TrendingUp, TrendingDown, DollarSign, BarChart3, Plus, Wallet } from "lucide-react"
 import { WalletConnectModal } from "@/components/WalletConnectModal"
 import { usePortfolio } from "@/contexts/portfolio-context"

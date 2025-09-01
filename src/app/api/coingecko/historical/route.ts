@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Accept': 'application/json',
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      next: { revalidate: 180 }, // Cache for 3 minutes for faster updates
     })
 
     if (!response.ok) {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(transformedData, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
       },
     })
   } catch (error) {

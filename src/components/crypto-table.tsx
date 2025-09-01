@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { motion } from "framer-motion"
 import {
   Table,
@@ -23,7 +23,7 @@ interface CryptoTableProps {
   limit?: number
 }
 
-export function CryptoTable({ limit }: CryptoTableProps) {
+export const CryptoTable = React.memo(function CryptoTable({ limit }: CryptoTableProps) {
   const { data: cryptoData, error, isLoading, refetch } = useCryptoMarkets(1, limit || 100)
   const [sortField, setSortField] = useState<string>("market_cap_rank")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -152,12 +152,12 @@ export function CryptoTable({ limit }: CryptoTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <div className="w-[25px] h-[25px] rounded-full overflow-hidden">
                           <Image
                             src={crypto.image}
                             alt={crypto.name}
-                            width={32}
-                            height={32}
+                            width={25}
+                            height={25}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none'
@@ -206,4 +206,4 @@ export function CryptoTable({ limit }: CryptoTableProps) {
       </CardContent>
     </Card>
   )
-}
+})

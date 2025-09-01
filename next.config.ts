@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
         pathname: '/coins/images/**',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 86400, // 24 hours
   },
   webpack: (config, { isServer }) => {
     // Fix for EventEmitter polyfill issues in browser

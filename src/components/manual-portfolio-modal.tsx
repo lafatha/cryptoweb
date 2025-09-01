@@ -70,10 +70,12 @@ export function ManualPortfolioModal({ isOpen, onClose, onSubmit }: ManualPortfo
   const [searchQuery, setSearchQuery] = useState<string>('')
   
   // Filter tokens based on search query
-  const filteredTokens = VERIFIED_TOKENS.filter(token => 
-    token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredTokens = VERIFIED_TOKENS.filter(token => {
+    const searchLower = searchQuery.toLowerCase()
+    return token.name.toLowerCase().includes(searchLower) ||
+           token.symbol.toLowerCase().includes(searchLower) ||
+           token.id.toLowerCase().includes(searchLower)
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
