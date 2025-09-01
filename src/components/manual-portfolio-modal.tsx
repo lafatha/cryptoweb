@@ -14,24 +14,34 @@ import { Plus } from "lucide-react"
 const VERIFIED_TOKENS = [
   { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin' },
   { id: 'ethereum', symbol: 'ETH', name: 'Ethereum' },
-  { id: 'solana', symbol: 'SOL', name: 'Solana' },
-  { id: 'cardano', symbol: 'ADA', name: 'Cardano' },
-  { id: 'polkadot', symbol: 'DOT', name: 'Polkadot' },
-  { id: 'matic-network', symbol: 'MATIC', name: 'Polygon' },
-  { id: 'chainlink', symbol: 'LINK', name: 'Chainlink' },
-  { id: 'uniswap', symbol: 'UNI', name: 'Uniswap' },
-  { id: 'litecoin', symbol: 'LTC', name: 'Litecoin' },
-  { id: 'bitcoin-cash', symbol: 'BCH', name: 'Bitcoin Cash' },
   { id: 'tether', symbol: 'USDT', name: 'Tether' },
-  { id: 'usd-coin', symbol: 'USDC', name: 'USD Coin' },
   { id: 'binancecoin', symbol: 'BNB', name: 'BNB' },
+  { id: 'solana', symbol: 'SOL', name: 'Solana' },
+  { id: 'usd-coin', symbol: 'USDC', name: 'USD Coin' },
   { id: 'ripple', symbol: 'XRP', name: 'XRP' },
   { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin' },
+  { id: 'cardano', symbol: 'ADA', name: 'Cardano' },
   { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche' },
-  { id: 'shiba-inu', symbol: 'SHIB', name: 'Shiba Inu' },
+  { id: 'chainlink', symbol: 'LINK', name: 'Chainlink' },
+  { id: 'matic-network', symbol: 'MATIC', name: 'Polygon' },
+  { id: 'polkadot', symbol: 'DOT', name: 'Polkadot' },
+  { id: 'litecoin', symbol: 'LTC', name: 'Litecoin' },
+  { id: 'uniswap', symbol: 'UNI', name: 'Uniswap' },
   { id: 'cosmos', symbol: 'ATOM', name: 'Cosmos' },
-  { id: 'near', symbol: 'NEAR', name: 'NEAR Protocol' },
+  { id: 'ethereum-classic', symbol: 'ETC', name: 'Ethereum Classic' },
+  { id: 'monero', symbol: 'XMR', name: 'Monero' },
+  { id: 'stellar', symbol: 'XLM', name: 'Stellar' },
+  { id: 'bitcoin-cash', symbol: 'BCH', name: 'Bitcoin Cash' },
   { id: 'algorand', symbol: 'ALGO', name: 'Algorand' },
+  { id: 'hedera-hashgraph', symbol: 'HBAR', name: 'Hedera' },
+  { id: 'vechain', symbol: 'VET', name: 'VeChain' },
+  { id: 'filecoin', symbol: 'FIL', name: 'Filecoin' },
+  { id: 'internet-computer', symbol: 'ICP', name: 'Internet Computer' },
+  { id: 'aptos', symbol: 'APT', name: 'Aptos' },
+  { id: 'arbitrum', symbol: 'ARB', name: 'Arbitrum' },
+  { id: 'optimism', symbol: 'OP', name: 'Optimism' },
+  { id: 'shiba-inu', symbol: 'SHIB', name: 'Shiba Inu' },
+  { id: 'near', symbol: 'NEAR', name: 'NEAR Protocol' },
 ]
 
 export interface ManualPortfolioEntry {
@@ -57,6 +67,13 @@ export function ManualPortfolioModal({ isOpen, onClose, onSubmit }: ManualPortfo
   const [buyPrice, setBuyPrice] = useState<string>('')
   const [notes, setNotes] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  
+  // Filter tokens based on search query
+  const filteredTokens = VERIFIED_TOKENS.filter(token => 
+    token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,6 +102,7 @@ export function ManualPortfolioModal({ isOpen, onClose, onSubmit }: ManualPortfo
       setAmount('')
       setBuyPrice('')
       setNotes('')
+      setSearchQuery('')
       onClose()
     } catch (error) {
       console.error('Error adding manual portfolio entry:', error)
@@ -99,6 +117,7 @@ export function ManualPortfolioModal({ isOpen, onClose, onSubmit }: ManualPortfo
       setAmount('')
       setBuyPrice('')
       setNotes('')
+      setSearchQuery('')
       onClose()
     }
   }
@@ -121,22 +140,39 @@ export function ManualPortfolioModal({ isOpen, onClose, onSubmit }: ManualPortfo
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="token">Asset</Label>
-            <Select value={selectedToken} onValueChange={setSelectedToken} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a cryptocurrency" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {VERIFIED_TOKENS.map((token) => (
-                  <SelectItem key={token.id} value={token.id}>
-                    <div className="flex items-center gap-3">
-                      <CryptoIcon symbol={token.symbol} size={20} />
-                      <span className="font-medium">{token.symbol}</span>
-                      <span className="text-muted-foreground">{token.name}</span>
+            <div className="relative">
+              <Input
+                placeholder="Search cryptocurrency (e.g., Bitcoin, BTC)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mb-2"
+              />
+              {searchQuery && (
+                <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
+                  {filteredTokens.length > 0 ? (
+                    filteredTokens.map((token) => (
+                      <button
+                        key={token.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedToken(token.id)
+                          setSearchQuery(`${token.symbol} - ${token.name}`)
+                        }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <CryptoIcon symbol={token.symbol} size={20} />
+                        <span className="font-medium">{token.symbol}</span>
+                        <span className="text-muted-foreground">{token.name}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-3 text-muted-foreground text-center">
+                      No assets found for "{searchQuery}"
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

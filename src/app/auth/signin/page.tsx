@@ -1,76 +1,27 @@
 "use client"
 
-import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { useAccount } from "wagmi"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Separator } from "@/components/ui/separator"
-import { TrendingUp, Mail, Lock, AlertCircle } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { WalletConnectBtn } from "@/components/WalletConnectBtn"
+import { MetaMaskBtn } from "@/components/MetaMaskBtn"
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const { isConnected } = useAccount()
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Invalid credentials. Please try again.")
-      } else {
-        router.push("/dashboard/portfolio")
-        router.refresh()
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleDemoLogin = async () => {
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const result = await signIn("credentials", {
-        email: "demo@cryptofinance.app",
-        password: "demo123!",
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Demo login failed. Please try again.")
-      } else {
-        router.push("/dashboard/portfolio")
-        router.refresh()
-      }
-    } catch (error) {
-      setError("An error occurred during demo login.")
-    } finally {
-      setIsLoading(false)
-    }
+  // Redirect if already connected
+  if (isConnected) {
+    router.push("/portfolio")
+    return null
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -78,110 +29,62 @@ export default function SignInPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <TrendingUp className="h-8 w-8 mr-2" />
-            <span className="text-2xl font-bold">CryptoFinance</span>
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-12 bg-black dark:bg-white rounded-2xl flex items-center justify-center mr-3">
+              <span className="text-white dark:text-black font-bold text-lg">CF</span>
+            </div>
+            <span className="text-3xl font-black text-black dark:text-white">CryptoFinance</span>
           </div>
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">
-            Sign in to access your portfolio and trading dashboard
+          <h1 className="text-4xl md:text-5xl font-black text-black dark:text-white leading-tight mb-4">
+            Connect Your Wallet
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 font-light">
+            Access your portfolio with your crypto wallet
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Signing in...
-                  </div>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
-
-            <div className="relative">
-              <Separator />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-background px-2 text-xs text-muted-foreground">
-                  OR
-                </span>
-              </div>
+        <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black rounded-2xl shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            {/* Primary Wallet Options */}
+            <div className="space-y-4">
+              <MetaMaskBtn />
+              <WalletConnectBtn />
             </div>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleDemoLogin}
-              disabled={isLoading}
-            >
-              Try Demo Account
-            </Button>
-
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <span className="text-primary cursor-pointer hover:underline">
-                  Create one by signing in with any email
-                </span>
+            {/* Alternative Options */}
+            <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Or continue without wallet
               </p>
-              <p className="text-xs text-muted-foreground">
-                Demo credentials: demo@cryptofinance.app / demo123!
+              
+              <Link href="/portfolio">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-2xl py-6"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Continue as Guest
+                </Button>
+              </Link>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                By connecting a wallet, you agree to our{" "}
+                <Link href="/terms" className="underline hover:text-gray-700 dark:hover:text-gray-300">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="underline hover:text-gray-700 dark:hover:text-gray-300">
+                  Privacy Policy
+                </Link>
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
+        <div className="text-center mt-8">
+          <Link href="/" className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
             ← Back to home
           </Link>
         </div>

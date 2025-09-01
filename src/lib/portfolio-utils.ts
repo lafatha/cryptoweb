@@ -6,6 +6,10 @@ import type { TokenBalance } from '@/contexts/portfolio-context'
  */
 export function formatTokenBalance(balance: string, decimals: number, displayDecimals: number = 5): string {
   try {
+    // Ensure balance is a valid number string
+    if (!balance || balance === '' || isNaN(Number(balance))) {
+      return '0.00000'
+    }
     const formatted = formatUnits(BigInt(balance), decimals)
     const num = parseFloat(formatted)
     return num.toFixed(displayDecimals)
@@ -20,6 +24,10 @@ export function formatTokenBalance(balance: string, decimals: number, displayDec
  */
 export function calculateMarketValue(balance: string, decimals: number, price: number): number {
   try {
+    // Ensure balance is a valid number string
+    if (!balance || balance === '' || isNaN(Number(balance))) {
+      return 0
+    }
     const formattedBalance = formatUnits(BigInt(balance), decimals)
     const balanceNum = parseFloat(formattedBalance)
     return balanceNum * price

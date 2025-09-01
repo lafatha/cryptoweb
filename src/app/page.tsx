@@ -7,57 +7,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MarketTicker } from "@/components/market-ticker"
 import HeroSection from "@/components/HeroSection"
-import { ArrowRight, BarChart3, TrendingUp, Shield, Plus, HelpCircle, Bot, Wallet } from "lucide-react"
+import { Footer } from "@/components/footer"
+import { BarChart3, Shield, Bot, Wallet } from "lucide-react"
 
 const features = [
   {
     icon: Bot,
     title: "AI-Powered Insights",
-    description: "Advanced AI analysis combined with verified data sources like CoinGecko for intelligent portfolio recommendations."
+    description: "Get intelligent recommendations powered by real-time AI analysis."
   },
   {
     icon: Wallet,
     title: "Multi-Wallet Support",
-    description: "Connect MetaMask and other wallets or manually track assets across exchanges with live PnL calculations."
+    description: "Seamlessly connect wallets and exchanges in one dashboard."
   },
   {
     icon: BarChart3,
     title: "Real-Time Tracking",
-    description: "Professional-grade portfolio analytics with live price feeds and comprehensive performance metrics."
+    description: "Always know your portfolio's value with live data feeds."
   },
   {
     icon: Shield,
-    title: "Privacy First",
-    description: "No sign-ups required. Connect directly with your wallet or track manually - your data stays yours."
-  },
-  {
-    icon: TrendingUp,
-    title: "Live Market Data",
-    description: "Real-time price feeds, 24h charts, and market insights powered by CoinGecko API."
-  },
-  {
-    icon: Plus,
-    title: "Manual Entries",
-    description: "Track CEX holdings, DeFi positions, and any crypto asset with custom buy prices and notes."
+    title: "Secure & Private",
+    description: "Your assets, your data. We never compromise security."
   }
 ]
 
 const faqs = [
   {
     question: "Do I need to sign up?",
-    answer: "No, you can connect directly with MetaMask or other wallets. No account creation required."
+    answer: "Yes, but it's quick and free."
   },
   {
     question: "Do I need to deposit funds?",
-    answer: "No deposits needed. This is a tracker only, not an exchange. We never hold your funds."
+    answer: "No, just connect your wallets and exchanges."
   },
   {
     question: "Is this AI powered?",
-    answer: "Yes. Powered by our in-house AI combined with verified data sources like CoinGecko for intelligent insights."
+    answer: "Yes, AI provides insights and recommendations in real time."
   },
   {
     question: "Can I track CEX assets?",
-    answer: "Yes. You can manually add assets, including buy price, and the app will track live PnL and performance."
+    answer: "Yes, major exchanges are supported."
   }
 ]
 
@@ -67,69 +58,155 @@ export default function Home() {
       {/* Market Ticker */}
       <MarketTicker />
       
-      {/* Hero Section dengan Chat */}
+      {/* Hero Section with Chat */}
       <HeroSection />
 
       {/* Features Section */}
-      <section className="container max-w-6xl mx-auto px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-center space-y-4 mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Professional Portfolio Intelligence
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Advanced crypto tracking with AI-powered insights, multi-wallet support, and manual entry capabilities
-          </p>
-        </motion.div>
+      <section className="py-24 bg-white dark:bg-black">
+        {/* Minimal background pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0,0,0,0.02)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255,255,255,0.02)_1px,transparent_0)] bg-[size:32px_32px]" />
+        
+        <div className="container max-w-6xl mx-auto px-4 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center space-y-6 mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tight">
+              Everything You Need
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-light">
+              Professional crypto tracking made simple
+            </p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => {
-            const Icon = feature.icon
-            return (
+          {/* Horizontal Feature Blocks */}
+          <div className="space-y-8">
+            {features.map((feature, index) => {
+              const Icon = feature.icon
+              return (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                  className="group"
+                >
+                  <div className="flex items-start space-x-6 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-black dark:bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="h-6 w-6 text-white dark:text-black" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-black dark:text-white mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">
+                        {feature.title}
+                      </h3>
+                      <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose CryptoFinance Section */}
+      <section className="py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="container max-w-6xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center space-y-6 mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tight">
+              Why CryptoFinance?
+            </h2>
+          </motion.div>
+
+          <div className="space-y-12">
+            {[
+              {
+                title: "Transparency",
+                description: "No hidden fees, no dark patterns. Just clarity."
+              },
+              {
+                title: "Security",
+                description: "Enterprise-grade encryption keeps your data safe."
+              },
+              {
+                title: "Simplicity",
+                description: "All your crypto in one clean, intelligent interface."
+              },
+              {
+                title: "Future-Proof",
+                description: "Built with AI, designed for tomorrow's investors."
+              }
+            ].map((benefit, index) => (
               <motion.div
-                key={feature.title}
+                key={benefit.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                className="border-b border-gray-200 dark:border-gray-800 pb-12 last:border-b-0 last:pb-0"
               >
-                <Card className="h-full hover:shadow-lg transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                  <h3 className="text-3xl md:text-4xl font-black text-black dark:text-white">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-xl text-gray-600 dark:text-gray-400 md:max-w-md font-light">
+                    {benefit.description}
+                  </p>
+                </div>
               </motion.div>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-white dark:bg-black">
+        <div className="container max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tight leading-tight">
+              Track Your Portfolio with AI Precision
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-light">
+              No more spreadsheets. No more manual entries. Just intelligence.
+            </p>
+            <div className="flex justify-center pt-8">
+              <Link href="/auth/signin">
+                <Button className="w-full sm:w-auto px-12 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 transform hover:scale-[1.02] text-lg">
+                  Connect Wallet
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-muted/30 py-20">
+      <section id="faq" className="py-24 bg-gray-50 dark:bg-gray-900">
         <div className="container max-w-4xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-center space-y-4 mb-16"
+            className="text-center space-y-6 mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tight">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-muted-foreground">
-              Everything you need to know about our portfolio tracker
-            </p>
           </motion.div>
           
           <motion.div
@@ -143,12 +220,12 @@ export default function Home() {
                 <AccordionItem 
                   key={`faq-${index}`} 
                   value={`item-${index}`}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg px-6 py-2 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                  className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black rounded-2xl px-6 py-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300"
                 >
-                  <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
+                  <AccordionTrigger className="text-left text-xl font-bold hover:no-underline text-black dark:text-white transition-colors duration-300">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed pt-2 pb-4">
+                  <AccordionContent className="text-gray-600 dark:text-gray-400 leading-relaxed pt-2 pb-4 text-lg">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
@@ -156,28 +233,6 @@ export default function Home() {
             </Accordion>
           </motion.div>
 
-          {/* CTA at bottom of FAQ */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            className="text-center mt-16 space-y-6"
-          >
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold">Ready to track your portfolio?</h3>
-              <p className="text-lg text-muted-foreground">
-                Start monitoring your crypto holdings with AI-powered insights
-              </p>
-            </div>
-            <div className="flex justify-center">
-              <Button asChild size="lg" className="text-lg px-8">
-                <Link href="/portfolio">
-                  Start Tracking
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -185,6 +240,9 @@ export default function Home() {
       <section className="border-t">
         <MarketTicker />
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

@@ -17,19 +17,19 @@ interface HeroChatProps {
   loop?: boolean;
 }
 
-// Default script untuk percakapan
+// Default script for conversation
 const DEFAULT_SCRIPT: Message[] = [
-  { isUser: true, text: 'Berapa jumlah alokasi portofolio yang optimal? 💼', delayMs: 800 },
+  { isUser: true, text: 'What is the optimal portfolio allocation amount?', delayMs: 800 },
   { 
     isUser: false, 
-    text: 'Jumlah alokasi portofolio yang optimal dapat bervariasi tergantung pada beberapa faktor, seperti tujuan investasi, toleransi risiko. Berikut beberapa prinsip umum yang dapat dijadikan acuan', 
+    text: 'The optimal portfolio allocation can vary depending on several factors such as investment objectives and risk tolerance. Diversification is usually recommended across Bitcoin (60%), major altcoins (30%), and stablecoins (10%).', 
     delayMs: 1200 
   },
-  { isUser: true, text: 'Diversifikasi seperti apa yang dimaksud?', delayMs: 1000 },
-  { isUser: false, text: 'Diversifikasi: Alokasi portofolio yang optimal biasanya mencakup 60/30/10 - Bitcoin, Altcoins, dan Stablecoins. Lalu sesuaikan dengan toleransi risiko Anda.', delayMs: 1400 },
+  { isUser: true, text: 'How should I assess my risk tolerance?', delayMs: 1000 },
+  { isUser: false, text: 'Risk tolerance assessment involves evaluating your investment timeline, financial goals, and comfort with volatility. Conservative investors might prefer 40% BTC, 20% ETH, 40% stablecoins, while aggressive investors could go 70% BTC, 25% altcoins, 5% stables.', delayMs: 1400 },
 ];
 
-// Hook untuk typewriter effect
+// Hook for typewriter effect
 function useTypewriter(text: string, speedMs: number = 45) {
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
@@ -72,13 +72,13 @@ function useTypewriter(text: string, speedMs: number = 45) {
   return { displayedText, isTyping };
 }
 
-// Komponen untuk titik-titik mengetik
+// Component for typing dots
 function TypingDots() {
   return (
     <div 
       className="flex space-x-1 py-2"
       role="status"
-      aria-label="Sedang mengetik"
+      aria-label="Typing"
     >
       <motion.div
         className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
@@ -99,7 +99,7 @@ function TypingDots() {
   );
 }
 
-// Komponen untuk gelembung chat individual
+// Component for individual chat bubble
 function ChatBubble({ 
   message, 
   isVisible, 
@@ -146,28 +146,28 @@ function ChatBubble({
       className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className="flex items-start space-x-2 max-w-[85%]">
-        {/* Avatar untuk bot */}
+        {/* Avatar for bot */}
         {!message.isUser && (
           <div className="flex-shrink-0 w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-sm">
             🤖
           </div>
         )}
         
-        {/* Gelembung pesan */}
+        {/* Message bubble */}
         <div
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
             message.isUser
               ? 'bg-black text-white rounded-br-md dark:bg-white dark:text-black'
-              : 'bg-white border border-gray-200 rounded-bl-md shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white'
+              : 'bg-gray-100 text-gray-900 rounded-bl-md dark:bg-gray-800 dark:text-gray-100'
           }`}
         >
           {displayedText}
           {isTyping && <TypingDots />}
         </div>
 
-        {/* Avatar untuk user */}
+        {/* Avatar for user */}
         {message.isUser && (
-          <div className="flex-shrink-0 w-8 h-8 bg-gray-800 dark:bg-gray-200 rounded-full flex items-center justify-center text-sm text-white dark:text-gray-800">
+          <div className="flex-shrink-0 w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-sm text-white dark:text-black">
             👤
           </div>
         )}
@@ -176,7 +176,7 @@ function ChatBubble({
   );
 }
 
-// Komponen utama HeroChat
+// Main HeroChat component
 export default function HeroChat({
   messages = DEFAULT_SCRIPT,
   typingSpeedMs = 45,
@@ -318,15 +318,15 @@ export default function HeroChat({
       className="w-full max-w-md mx-auto"
     >
       {/* Container kartu chat */}
-      <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur shadow-lg overflow-hidden">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold">
               AI
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">AI Assistant</h3>
+              <h3 className="font-semibold text-black dark:text-white">AI Assistant</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
             </div>
           </div>
@@ -352,10 +352,10 @@ export default function HeroChat({
           </AnimatePresence>
         </motion.div>
 
-        {/* Input palsu (non-interaktif) */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
-          <div className="rounded-full bg-gray-100 dark:bg-gray-700 h-10 w-full px-4 flex items-center">
-            <span className="text-gray-500 dark:text-gray-400 text-sm">Type your message.....</span>
+        {/* Input placeholder (non-interactive) */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+          <div className="rounded-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-700 h-10 w-full px-4 flex items-center">
+            <span className="text-gray-500 dark:text-gray-400 text-sm">Ask about portfolio strategy...</span>
           </div>
         </div>
       </div>
