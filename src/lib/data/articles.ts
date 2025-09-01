@@ -1,12 +1,19 @@
 import { supabaseService } from '@/lib/supabaseService';
 
 export async function listArticlesAdmin() {
+  console.log('Fetching articles from Supabase...');
+  
   const { data, error } = await supabaseService
     .from('articles')
     .select('id, slug, title, excerpt, category, is_published, published_at, updated_at')
     .order('updated_at', { ascending: false });
   
-  if (error) throw error;
+  console.log('Supabase response:', { data, error });
+  
+  if (error) {
+    console.error('Supabase error details:', error);
+    throw new Error(`Supabase Error: ${error.message}`);
+  }
   return data ?? [];
 }
 

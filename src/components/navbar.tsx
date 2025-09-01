@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useSession, signOut } from "next-auth/react"
 import { useAccount, useDisconnect } from "wagmi"
 import { Menu, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -28,7 +27,6 @@ const Logo = () => (
 )
 
 export function Navbar() {
-  const { data: session, status } = useSession()
   const { isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const [showWalletModal, setShowWalletModal] = useState(false)
@@ -36,8 +34,6 @@ export function Navbar() {
   const handleDisconnect = () => {
     if (isConnected) {
       disconnect()
-    } else if (session) {
-      signOut()
     }
   }
 
@@ -69,16 +65,12 @@ export function Navbar() {
           </div>
           
           {/* User Authentication */}
-          {status === "loading" ? (
-            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-          ) : session || isConnected ? (
+          {isConnected ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline text-sm">
-                    {isConnected ? "Wallet Connected" : (session?.user?.name || session?.user?.email)}
-                  </span>
+                  <span className="hidden sm:inline text-sm">Wallet Connected</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
@@ -91,7 +83,7 @@ export function Navbar() {
                 <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
                 <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900">
                   <LogOut className="h-4 w-4 mr-2" />
-                  {isConnected ? "Disconnect" : "Sign Out"}
+                  Disconnect
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -128,7 +120,7 @@ export function Navbar() {
                   </Link>
                 ))}
                 
-                {session && (
+                {isConnected && (
                   <>
                     <div className="border-t border-gray-200 dark:border-gray-800 my-4" />
                     <Link 
@@ -144,11 +136,11 @@ export function Navbar() {
                       AI Advisor
                     </Link>
                     <button 
-                      onClick={() => signOut()}
+                      onClick={() => disconnect()}
                       className="text-sm font-medium transition-colors hover:text-primary py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
                     >
                       <LogOut className="h-4 w-4 mr-2 inline" />
-                      Sign Out
+                      Disconnect
                     </button>
                   </>
                 )}

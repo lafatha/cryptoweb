@@ -1,6 +1,5 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-// import EmailProvider from "next-auth/providers/email"
 
 const authConfig = {
   providers: [
@@ -69,18 +68,6 @@ const authConfig = {
         return null
       }
     })
-    // Uncomment for email provider
-    // EmailProvider({
-    //   server: {
-    //     host: process.env.EMAIL_SERVER_HOST,
-    //     port: process.env.EMAIL_SERVER_PORT,
-    //     auth: {
-    //       user: process.env.EMAIL_SERVER_USER,
-    //       pass: process.env.EMAIL_SERVER_PASSWORD,
-    //     },
-    //   },
-    //   from: process.env.EMAIL_FROM,
-    // })
   ],
   pages: {
     signIn: '/auth/signin',
@@ -89,28 +76,24 @@ const authConfig = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    async jwt({ token, user, account }: { token: any; user: any; account: any }) {
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.id = user.id
         token.walletAddress = user.walletAddress
       }
-      if (account?.provider === "wallet") {
-        token.isWallet = true
-      }
       return token
     },
     async session({ session, token }: { session: any; token: any }) {
-      // Always return a valid session object
-      if (!session.user) session.user = {};
-      session.user.id = token?.id || null;
-      session.user.walletAddress = token?.walletAddress || null;
-      session.user.isWallet = token?.isWallet || false;
+      if (session?.user) {
+        session.user.id = token?.id || null;
+        session.user.walletAddress = token?.walletAddress || null;
+      }
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: false, // Disable debug mode to reduce console errors
 }
 
 export const { auth, signIn, signOut, handlers } = NextAuth(authConfig)
-
-export { handlers as GET, handlers as POST }
+export const { GET, POST } = handlers
