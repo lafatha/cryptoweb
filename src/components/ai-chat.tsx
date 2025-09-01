@@ -131,6 +131,9 @@ export function AIChat() {
 
     try {
       // Call the real API
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
       const response = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: {
@@ -144,8 +147,11 @@ export function AIChat() {
             topHoldings: [], // Could be populated from portfolio data
             marketBrief: "Pasar crypto sedang dinamis dengan volatilitas tinggi"
           }
-        })
+        }),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -196,7 +202,15 @@ export function AIChat() {
                     : msg
                 ))
               } else if (parsed.error) {
-                throw new Error(parsed.message || 'Chat error')
+                // Handle error from server
+                assistantContent += `\n\n⚠️ ${parsed.error}`
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: assistantContent }
+                    : msg
+                ))
+                setIsTyping(false)
+                return
               }
             } catch (e) {
               // Skip invalid JSON
@@ -209,12 +223,25 @@ export function AIChat() {
     } catch (error) {
       console.error('Chat error:', error)
       
+      // Check if it's a connection error or timeout
+      const isConnectionError = error instanceof TypeError && 
+        (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch'))
+      const isTimeoutError = error instanceof Error && error.name === 'AbortError'
+      
       // Fallback to mock response
       const mockResponse = getAIResponse(content)
+      let errorMessage = 'An error occurred while processing your request.'
+      
+      if (isTimeoutError) {
+        errorMessage = 'Request timed out. The AI service is taking too long to respond.'
+      } else if (isConnectionError) {
+        errorMessage = 'Connection interrupted. Please check your internet connection and try again.'
+      }
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: `🤖 Maaf, terjadi gangguan koneksi. Berikut respons sementara:\n\n${mockResponse.content}`,
+        content: `🤖 ${errorMessage}\n\n${mockResponse.content}`,
         timestamp: new Date(),
         suggestions: mockResponse.suggestions
       }

@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import { supabase, testSupabaseConnection } from './supabaseClient'
 
 export interface WalletPortfolio {
   id?: string
@@ -26,12 +26,31 @@ export async function saveWalletConnection(
   walletType: string
 ): Promise<SavedWallet | null> {
   try {
+    // Validate inputs
+    if (!walletAddress || !walletType) {
+      console.error('Error saving wallet: Missing wallet address or type')
+      return null
+    }
+
+    // Test connection first
+    const isConnected = await testSupabaseConnection()
+    if (!isConnected) {
+      console.error('Error saving wallet: Database connection failed')
+      return null
+    }
+
     // Check if wallet already exists
-    const { data: existingWallet } = await supabase
+    const { data: existingWallet, error: selectError } = await supabase
       .from('wallets')
       .select('*')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle() // Use maybeSingle instead of single to avoid error when no record found
+
+    // If there's an error in the select query (not just no record found)
+    if (selectError && selectError.code !== 'PGRST116') {
+      console.error('Error checking existing wallet:', selectError)
+      return null
+    }
 
     if (existingWallet) {
       // Update last connected time
@@ -46,7 +65,10 @@ export async function saveWalletConnection(
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error updating wallet:', error)
+        return null
+      }
       return data
     } else {
       // Create new wallet record
@@ -61,11 +83,14 @@ export async function saveWalletConnection(
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error creating wallet:', error)
+        return null
+      }
       return data
     }
   } catch (error) {
-    console.error('Error saving wallet:', error)
+    console.error('Error saving wallet:', error instanceof Error ? error.message : error)
     return null
   }
 }
@@ -73,15 +98,23 @@ export async function saveWalletConnection(
 // Set wallet as inactive when user disconnects
 export async function disconnectWallet(walletAddress: string): Promise<boolean> {
   try {
+    if (!walletAddress) {
+      console.error('Error disconnecting wallet: Missing wallet address')
+      return false
+    }
+
     const { error } = await supabase
       .from('wallets')
       .update({ is_active: false })
       .eq('wallet_address', walletAddress.toLowerCase())
 
-    if (error) throw error
+    if (error) {
+      console.error('Error disconnecting wallet:', error)
+      return false
+    }
     return true
   } catch (error) {
-    console.error('Error disconnecting wallet:', error)
+    console.error('Error disconnecting wallet:', error instanceof Error ? error.message : error)
     return false
   }
 }
@@ -89,16 +122,24 @@ export async function disconnectWallet(walletAddress: string): Promise<boolean> 
 // Get portfolio for a specific wallet
 export async function getWalletPortfolio(walletAddress: string): Promise<WalletPortfolio[]> {
   try {
+    if (!walletAddress) {
+      console.error('Error fetching wallet portfolio: Missing wallet address')
+      return []
+    }
+
     const { data, error } = await supabase
       .from('wallet_portfolios')
       .select('*')
       .eq('wallet_address', walletAddress.toLowerCase())
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching wallet portfolio:', error)
+      return []
+    }
     return data || []
   } catch (error) {
-    console.error('Error fetching wallet portfolio:', error)
+    console.error('Error fetching wallet portfolio:', error instanceof Error ? error.message : error)
     return []
   }
 }
@@ -182,17 +223,25 @@ export async function removeAssetFromWalletPortfolio(
 // Get saved wallet info
 export async function getSavedWallet(walletAddress: string): Promise<SavedWallet | null> {
   try {
+    if (!walletAddress) {
+      console.error('Error fetching saved wallet: Missing wallet address')
+      return null
+    }
+
     const { data, error } = await supabase
       .from('wallets')
       .select('*')
       .eq('wallet_address', walletAddress.toLowerCase())
       .eq('is_active', true)
-      .single()
+      .maybeSingle() // Use maybeSingle instead of single to avoid error when no record found
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching saved wallet:', error)
+      return null
+    }
     return data
   } catch (error) {
-    console.error('Error fetching saved wallet:', error)
+    console.error('Error fetching saved wallet:', error instanceof Error ? error.message : error)
     return null
   }
 }

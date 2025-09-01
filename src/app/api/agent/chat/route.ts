@@ -168,7 +168,11 @@ export async function POST(request: Request) {
                 const sseData = JSON.stringify({ content: notFoundMsg });
                 controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
               }
-              controller.error(error);
+              // Send error message instead of calling controller.error
+              const errorMsg = JSON.stringify({ error: 'Connection interrupted. Please try again.' });
+              controller.enqueue(encoder.encode(`data: ${errorMsg}\n\n`));
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+              controller.close();
             } finally {
               reader.releaseLock();
             }

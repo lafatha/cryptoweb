@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
     
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
       
       const response = await fetch('/api/admin/login', {
         method: 'POST',
@@ -43,7 +43,9 @@ export default function AdminLoginPage() {
       
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        setErr('Login timeout. Please try again.');
+        setErr('Login timeout. Please check your connection and try again.');
+      } else if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        setErr('Connection interrupted. Please check your internet connection and try again.');
       } else {
         setErr(error.message || 'Login failed');
       }

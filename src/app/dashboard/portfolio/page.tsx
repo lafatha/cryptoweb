@@ -152,6 +152,9 @@ export default function DashboardPortfolioPage() {
           // Load wallet portfolio from database
           getWalletPortfolio(address).then(setWalletPortfolio)
         }
+      }).catch((error) => {
+        console.error('Failed to save wallet connection:', error)
+        setIsWalletSaved(false)
       })
     } else {
       // Reset wallet portfolio when disconnected

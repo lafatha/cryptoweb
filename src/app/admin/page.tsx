@@ -40,18 +40,23 @@ const AdminHome: React.FC = memo(() => {
       if (showLoading) setLoading(true);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
       
       const response = await fetch('/api/admin/articles', {
         credentials: 'include',
         signal: controller.signal,
-        // Cache untuk 30 detik
-        next: { revalidate: 30 }
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       });
       
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        if (response.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
@@ -65,15 +70,17 @@ const AdminHome: React.FC = memo(() => {
       setErrorMsg(null);
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        setErrorMsg('Request timeout. Please refresh the page.');
+        setErrorMsg('Request timeout. Please check your connection and refresh the page.');
+      } else if (error.message.includes('fetch')) {
+        setErrorMsg('Connection interrupted. Please check your internet connection.');
       } else {
-        setErrorMsg(error?.message || 'Gagal mengambil data artikel');
+        setErrorMsg(error?.message || 'Failed to fetch articles');
       }
       console.error('Error fetching articles:', error);
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     fetchArticles();
@@ -91,7 +98,7 @@ const AdminHome: React.FC = memo(() => {
       setItems(prevItems => prevItems.filter(item => item.id !== id));
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout
       
       const response = await fetch(`/api/admin/articles/${id}`, {
         method: 'DELETE',
@@ -104,6 +111,10 @@ const AdminHome: React.FC = memo(() => {
       if (!response.ok) {
         // Revert optimistic update on error
         setItems(originalItems);
+        if (response.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
         throw new Error(`Failed to delete article: ${response.statusText}`);
       }
       
@@ -113,7 +124,9 @@ const AdminHome: React.FC = memo(() => {
     } catch (error: any) {
       console.error('Error deleting article:', error);
       if (error.name === 'AbortError') {
-        setErrorMsg('Delete timeout. Please try again.');
+        setErrorMsg('Delete timeout. Please check your connection and try again.');
+      } else if (error.message.includes('fetch')) {
+        setErrorMsg('Connection interrupted while deleting. Please try again.');
       } else {
         setErrorMsg('Failed to delete article');
       }
@@ -122,7 +135,7 @@ const AdminHome: React.FC = memo(() => {
     } finally {
       setDeleting(null);
     }
-  }, [items, deleting, fetchArticles]);
+  }, [items, deleting, fetchArticles, router]);
 
   // Memoisasi komponen artikel untuk performa lebih baik
   const ArticleItem = memo(({ article, index }: { article: any; index: number }) => (

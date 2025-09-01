@@ -38,18 +38,27 @@ export async function GET() {
       return NextResponse.json({ articles: articlesCache.data });
     }
 
-    // Fetch articles dengan optimisasi query
+    // Fetch articles dengan optimisasi query dan timeout handling
     console.log('🔍 Fetching articles from database...');
     
-    const { data, error } = await supabaseService
+    // Create a promise with timeout for Supabase query
+    const fetchPromise = supabaseService
       .from('articles')
       .select('id, slug, title, excerpt, category, is_published, published_at, updated_at')
       .order('updated_at', { ascending: false })
       .limit(50); // Limit untuk performa
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
+    );
+
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
     
     if (error) {
       console.error('❌ Database error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Database connection failed. Please try again later.' 
+      }, { status: 500 });
     }
 
     // Update cache
@@ -63,6 +72,7 @@ export async function GET() {
     // Set cache headers
     const response = NextResponse.json({ articles: data || [] });
     response.headers.set('Cache-Control', 'private, max-age=30');
+    response.headers.set('Connection', 'keep-alive');
     
     return response;
     
@@ -71,7 +81,14 @@ export async function GET() {
     if (error.message === 'Unauthorized' || error.message === 'Invalid token') {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (error.message === 'Database query timeout') {
+      return NextResponse.json({ 
+        error: 'Request timeout. Please check your connection and try again.' 
+      }, { status: 408 });
+    }
+    return NextResponse.json({ 
+      error: 'Connection interrupted. Please refresh the page.' 
+    }, { status: 500 });
   }
 }
 

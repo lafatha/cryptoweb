@@ -6,7 +6,20 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { PortfolioProvider } from '@/contexts/portfolio-context'
 import { config } from '@/lib/wagmi'
 
-const queryClient = new QueryClient()
+// Optimize QueryClient with retry settings to prevent connection issues
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      retryDelay: 1000,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+})
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
