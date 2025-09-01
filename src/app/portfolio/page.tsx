@@ -39,7 +39,7 @@ import {
   Network,
 
 } from "lucide-react"
-import { WalletButton } from "@/components/WalletButton"
+
 import { WalletConnectModal } from "@/components/WalletConnectModal"
 import { CryptoIcon } from "@/components/crypto-icon"
 import AgentDock from "@/components/AgentDock"
@@ -52,6 +52,14 @@ import {
   getTokenIdsFromManualEntries,
   removeManualPortfolioEntry
 } from "@/lib/manual-portfolio"
+import { 
+  saveWalletConnection,
+  disconnectWallet,
+  getWalletPortfolio,
+  addAssetToWalletPortfolio,
+  removeAssetFromWalletPortfolio,
+  type WalletPortfolio
+} from "@/lib/wallet-portfolio"
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from 'recharts'
 
 // ERC20 ABI untuk membaca balance dan decimals
@@ -126,11 +134,31 @@ export default function PortfolioPage() {
   const [showAgentDock, setShowAgentDock] = useState(false)
   const [showManualEntryModal, setShowManualEntryModal] = useState(false)
   const [manualEntries, setManualEntries] = useState<ManualPortfolioEntry[]>([])
+  const [walletPortfolio, setWalletPortfolio] = useState<WalletPortfolio[]>([])
+  const [isWalletSaved, setIsWalletSaved] = useState(false)
 
   // Load manual entries on component mount
   useEffect(() => {
     setManualEntries(getManualPortfolioEntries())
   }, [refreshKey])
+
+  // Handle wallet connection and save to database
+  useEffect(() => {
+    if (isConnected && address) {
+      // Save wallet connection to database
+      saveWalletConnection(address, 'metamask').then((saved) => {
+        setIsWalletSaved(!!saved)
+        if (saved) {
+          // Load wallet portfolio from database
+          getWalletPortfolio(address).then(setWalletPortfolio)
+        }
+      })
+    } else {
+      // Reset wallet portfolio when disconnected
+      setWalletPortfolio([])
+      setIsWalletSaved(false)
+    }
+  }, [isConnected, address])
 
   // Fetch portfolio data when wallet is connected or manual entries change
   useEffect(() => {
@@ -391,7 +419,24 @@ export default function PortfolioPage() {
 
   const handleAddManualEntry = async (entry: Omit<ManualPortfolioEntry, 'id' | 'createdAt'>) => {
     try {
-      addManualPortfolioEntry(entry)
+      if (isConnected && address) {
+        // Save to wallet portfolio in database
+        const saved = await addAssetToWalletPortfolio(
+          address,
+          entry.symbol,
+          entry.amount,
+          entry.buyPrice,
+          entry.notes
+        )
+        if (saved) {
+          // Refresh wallet portfolio
+          const portfolio = await getWalletPortfolio(address)
+          setWalletPortfolio(portfolio)
+        }
+      } else {
+        // Fallback to local storage for non-connected users
+        addManualPortfolioEntry(entry)
+      }
       refreshPortfolio() // Trigger refresh using context
     } catch (error) {
       console.error('Error adding manual portfolio entry:', error)
@@ -399,9 +444,20 @@ export default function PortfolioPage() {
     }
   }
 
-  const handleRemoveManualEntry = (entryId: string) => {
+  const handleRemoveManualEntry = async (entryId: string) => {
     try {
-      removeManualPortfolioEntry(entryId)
+      if (isConnected && address) {
+        // Remove from wallet portfolio in database
+        const removed = await removeAssetFromWalletPortfolio(address, entryId)
+        if (removed) {
+          // Refresh wallet portfolio
+          const portfolio = await getWalletPortfolio(address)
+          setWalletPortfolio(portfolio)
+        }
+      } else {
+        // Fallback to local storage for non-connected users
+        removeManualPortfolioEntry(entryId)
+      }
       refreshPortfolio() // Trigger refresh using context
     } catch (error) {
       console.error('Error removing manual portfolio entry:', error)
@@ -418,12 +474,41 @@ export default function PortfolioPage() {
         <Wallet className="h-12 w-12 text-muted-foreground" />
       </div>
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">Sambungkan MetaMask</h3>
+        <h3 className="text-xl font-semibold">Connect MetaMask</h3>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Sambungkan wallet MetaMask Anda untuk melihat portofolio cryptocurrency dan melacak nilai aset secara real-time.
+          Connect your MetaMask wallet to view your cryptocurrency portfolio and track asset values in real-time.
         </p>
       </div>
-  {/* Removed duplicate Connect Wallet and Add Asset buttons */}
+    </motion.div>
+  )
+
+  const WalletNotConnectedMessage = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-[60vh] flex items-center justify-center"
+    >
+      <div className="text-center space-y-6 max-w-md mx-auto px-4">
+        <div className="w-32 h-32 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+          <Wallet className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold text-black dark:text-white">Connect Your Wallet</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            To view your portfolio, please connect your wallet using the "Connect Wallet" button in the top navigation.
+          </p>
+        </div>
+        <div className="pt-4">
+          <Button 
+            onClick={() => setShowWalletModal(true)}
+            className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-8 py-3"
+          >
+            <Wallet className="mr-2 h-4 w-4" />
+            Connect Wallet
+          </Button>
+        </div>
+      </div>
     </motion.div>
   )
 
@@ -431,15 +516,15 @@ export default function PortfolioPage() {
     if (!chain || chain.id === 1) return null
     
     return (
-      <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/10">
+      <Card className="border-gray-200 bg-gray-50 dark:bg-gray-900/50">
         <CardContent className="pt-4">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-orange-500" />
+            <AlertCircle className="h-5 w-5 text-gray-500" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 Network not fully supported
               </p>
-              <p className="text-xs text-orange-700 dark:text-orange-300">
+              <p className="text-xs text-gray-700 dark:text-gray-300">
                 You're connected to {chain.name}. For full portfolio tracking, please switch to Ethereum Mainnet.
               </p>
             </div>
@@ -453,7 +538,8 @@ export default function PortfolioPage() {
     )
   }
 
-  if (!isConnected && manualEntries.length === 0) {
+  // Show "Please connect wallet" message when no wallet is connected
+  if (!isConnected) {
     return (
       <>
         <WalletConnectModal
@@ -464,34 +550,16 @@ export default function PortfolioPage() {
             window.location.href = '/auth/signin'
           }}
         />
-        <ManualPortfolioModal
-          isOpen={showManualEntryModal}
-          onClose={() => setShowManualEntryModal(false)}
-          onSubmit={handleAddManualEntry}
-        />
         <div className="container max-w-6xl mx-auto p-6">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Portfolio</h1>
-              <p className="text-muted-foreground">
-                Track your cryptocurrency portfolio and monitor performance
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowManualEntryModal(true)}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Asset
-              </Button>
-              <WalletButton onConnect={() => setShowWalletModal(true)} />
-            </div>
-          </div>
-          <EmptyState />
+          <WalletNotConnectedMessage />
         </div>
+        
+        {/* AI Agent Dock - always available */}
+        <AgentDock
+          portfolioData={[]}
+          isOpen={showAgentDock}
+          onToggle={() => setShowAgentDock(!showAgentDock)}
+        />
       </>
     )
   }
@@ -525,7 +593,6 @@ export default function PortfolioPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <WalletButton onConnect={() => setShowWalletModal(true)} />
           </div>
         </motion.div>
 
@@ -579,12 +646,12 @@ export default function PortfolioPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         {portfolioData.totalValueChange >= 0 ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <TrendingUp className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                         ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
+                          <TrendingDown className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                         )}
                         <span className={`text-sm font-medium ${
-                          portfolioData.totalValueChange >= 0 ? 'text-green-500' : 'text-red-500'
+                          portfolioData.totalValueChange >= 0 ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'
                         }`}>
                           {portfolioData.totalValueChange >= 0 ? '+' : ''}
                           ${formatCurrency(Math.abs(portfolioData.totalValueChange))} (
@@ -681,15 +748,17 @@ export default function PortfolioPage() {
                   <CardTitle>Holdings</CardTitle>
                   <CardDescription>Your current cryptocurrency positions</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowManualEntryModal(true)}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Asset
-                </Button>
+                {isConnected && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowManualEntryModal(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Asset
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -758,7 +827,7 @@ export default function PortfolioPage() {
                           <TableCell className="text-right">
                             {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? (
                               <div className={`flex items-center justify-end gap-1 ${
-                                holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
+                                holding.priceChange24h >= 0 ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'
                               }`}>
                                 {holding.priceChange24h >= 0 ? (
                                   <TrendingUp className="h-3 w-3" />
@@ -799,7 +868,7 @@ export default function PortfolioPage() {
                                   variant="ghost" 
                                   size="sm"
                                   onClick={() => handleRemoveManualEntry(holding.manualEntryId!)}
-                                  className="text-red-500 hover:text-red-700"
+                                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                 >
                                   <Plus className="h-4 w-4 rotate-45" />
                                 </Button>
@@ -832,7 +901,7 @@ export default function PortfolioPage() {
                                     <div>
                                       <p className="text-sm text-muted-foreground">24h Change</p>
                                       <p className={`text-lg font-semibold ${
-                                        holding.priceChange24h && holding.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'
+                                        holding.priceChange24h && holding.priceChange24h >= 0 ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'
                                       }`}>
                                         {holding.priceChange24h !== undefined && holding.priceChange24h !== null ? 
                                           `${holding.priceChange24h >= 0 ? '+' : ''}${(holding.priceChange24h || 0).toFixed(2)}%` : '—'}
@@ -902,13 +971,11 @@ export default function PortfolioPage() {
         </motion.div>
 
         {/* AI Agent Dock */}
-        {isConnected && (
-          <AgentDock
-            portfolioData={portfolioData?.holdings || []}
-            isOpen={showAgentDock}
-            onToggle={() => setShowAgentDock(!showAgentDock)}
-          />
-        )}
+        <AgentDock
+          portfolioData={portfolioData?.holdings || []}
+          isOpen={showAgentDock}
+          onToggle={() => setShowAgentDock(!showAgentDock)}
+        />
 
         {/* Manual Portfolio Entry Modal */}
         <ManualPortfolioModal

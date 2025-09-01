@@ -384,7 +384,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
         <Button
           size="lg"
           onClick={onToggle}
-          className="h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-black border border-white flex items-center justify-center"
+          className="h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-black dark:bg-black border border-gray-300 dark:border-white flex items-center justify-center"
         >
           {/* Larger robot head only, black/white theme */}
           <svg viewBox="0 0 32 20" className="w-16 h-16" fill="none">
@@ -406,18 +406,18 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)]">
-      <Card className="shadow-2xl border border-slate-800 bg-slate-950 text-gray-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-800 bg-slate-900">
+      <Card className="shadow-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-black dark:text-gray-200">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
           <div className="flex items-center space-x-3">
-            <RobotIcon className="w-8 h-8 text-gray-200" />
-            <CardTitle className="text-lg text-gray-200">AI Assistant</CardTitle>
+            <RobotIcon className="w-8 h-8 text-black dark:text-gray-200" />
+            <CardTitle className="text-lg text-black dark:text-gray-200">AI Assistant</CardTitle>
           </div>
           <div className="flex items-center space-x-2">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => router.push('/chat')}
-              className="text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-slate-800"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-slate-800"
               title="Open fullscreen chat"
             >
               <MessageSquare className="h-4 w-4" />
@@ -426,7 +426,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
               variant="ghost" 
               size="sm" 
               onClick={onToggle}
-              className="text-gray-400 hover:text-gray-200 hover:bg-white/5"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -436,11 +436,11 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'insights' | 'chat')}>
             <div className="px-6 pt-4">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-900 border border-slate-800">
-                <TabsTrigger value="insights" className="text-gray-400 data-[state=active]:text-gray-200 data-[state=active]:bg-slate-950 data-[state=active]:border data-[state=active]:border-slate-800 hover:bg-white/5 hover:text-gray-200">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                <TabsTrigger value="insights" className="text-gray-600 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-slate-800 hover:bg-gray-200 dark:hover:bg-white/5 hover:text-black dark:hover:text-gray-200">
                   Insights
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="text-gray-400 data-[state=active]:text-gray-200 data-[state=active]:bg-slate-950 data-[state=active]:border data-[state=active]:border-slate-800 hover:bg-white/5 hover:text-gray-200">
+                <TabsTrigger value="chat" className="text-gray-600 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:border data-[state=active]:border-gray-200 dark:data-[state=active]:border-slate-800 hover:bg-gray-200 dark:hover:bg-white/5 hover:text-black dark:hover:text-gray-200">
                   Chat
                 </TabsTrigger>
               </TabsList>
@@ -452,7 +452,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    <p className="text-sm text-gray-200">{analysisError}</p>
+                    <p className="text-sm text-black dark:text-gray-200">{analysisError}</p>
                   </div>
                 </div>
               )}
@@ -461,7 +461,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
               <Button 
                 onClick={runAnalysis} 
                 disabled={isAnalyzing}
-                className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-500/35 focus:ring-offset-0 disabled:opacity-50"
+                className="w-full bg-black dark:bg-emerald-500 text-white dark:text-slate-950 hover:bg-gray-800 dark:hover:bg-emerald-600 focus:ring-2 focus:ring-gray-500 dark:focus:ring-emerald-500/35 focus:ring-offset-0 disabled:opacity-50"
               >
                 {isAnalyzing ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -523,7 +523,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Klik "Refresh Analysis" untuk mendapatkan insights terbaru
                     </p>
                   </div>
@@ -537,13 +537,13 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                 <div className="space-y-4 py-4">
                   {messages.length === 0 && (
                     <div className="text-center py-12">
-                      <RobotIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                      <p className="text-sm text-gray-400 mb-3">
+                      <RobotIcon className="w-12 h-12 text-black dark:text-gray-200 mx-auto mb-4" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                         Ask me anything about cryptocurrency
                       </p>
                       <Button
                         onClick={() => router.push('/chat')}
-                        className="bg-emerald-500 text-slate-950 hover:bg-emerald-600"
+                        className="bg-black dark:bg-emerald-500 text-white dark:text-slate-950 hover:bg-gray-800 dark:hover:bg-emerald-600"
                       >
                         Open Full Chat
                       </Button>
@@ -554,14 +554,14 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                     <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
                       <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
                         message.role === 'user' 
-                          ? 'bg-emerald-500 text-slate-950 ml-4' 
-                          : 'bg-slate-900 text-gray-200 mr-4 border border-slate-800'
+                          ? 'bg-black dark:bg-emerald-500 text-white dark:text-slate-950 ml-4' 
+                          : 'bg-gray-100 dark:bg-slate-900 text-black dark:text-gray-200 mr-4 border border-gray-200 dark:border-slate-800'
                       }`}>
                         <div className="whitespace-pre-wrap leading-relaxed">
                           {message.content}
                         </div>
                         <div className={`text-xs mt-2 opacity-70 ${
-                          message.role === 'user' ? 'text-slate-700' : 'text-gray-400'
+                          message.role === 'user' ? 'text-gray-300 dark:text-slate-700' : 'text-gray-600 dark:text-gray-400'
                         }`}>
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
@@ -571,14 +571,14 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                   
                   {isTyping && (
                     <div className="flex justify-start mb-4">
-                      <div className="bg-slate-900 text-gray-200 rounded-2xl px-4 py-3 text-sm mr-4 border border-slate-800">
+                      <div className="bg-gray-100 dark:bg-slate-900 text-black dark:text-gray-200 rounded-2xl px-4 py-3 text-sm mr-4 border border-gray-200 dark:border-slate-800">
                         <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-black dark:bg-gray-200 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-black dark:bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-black dark:bg-gray-200 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
-                          <span className="text-gray-400 text-xs">AI is typing...</span>
+                          <span className="text-gray-600 dark:text-gray-400 text-xs">AI is typing...</span>
                         </div>
                       </div>
                     </div>
@@ -589,8 +589,8 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
               </ScrollArea>
 
               {/* Chat Input */}
-              <div className="p-6 pt-4 border-t border-slate-800">
-                <div className="flex items-center space-x-3 bg-slate-950 rounded-xl border border-slate-800 p-3">
+              <div className="p-6 pt-4 border-t border-gray-200 dark:border-slate-800">
+                <div className="flex items-center space-x-3 bg-gray-50 dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 p-3">
                   <Input
                     ref={inputRef}
                     value={inputValue}
@@ -598,13 +598,13 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                     onKeyDown={handleKeyPress}
                     placeholder="Type your message..."
                     disabled={isSending}
-                    className="flex-1 border-none bg-transparent text-gray-200 placeholder-gray-400 focus:ring-0 focus:outline-none"
+                    className="flex-1 border-none bg-transparent text-black dark:text-gray-200 placeholder-gray-600 dark:placeholder-gray-400 focus:ring-0 focus:outline-none"
                   />
                   <Button
                     onClick={sendMessage}
                     disabled={!inputValue.trim() || isSending}
                     size="sm"
-                    className="bg-transparent border border-slate-800 text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-xl px-4 py-2 h-auto"
+                    className="bg-transparent border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl px-4 py-2 h-auto"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
@@ -615,8 +615,8 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
         </CardContent>
 
         {/* Disclaimer */}
-        <div className="px-6 pb-4 border-t border-slate-800">
-          <p className="text-xs text-gray-400 text-center pt-4">
+        <div className="px-6 pb-4 border-t border-gray-200 dark:border-slate-800">
+          <p className="text-xs text-gray-600 dark:text-gray-400 text-center pt-4">
             <AlertTriangle className="h-3 w-3 inline mr-1 text-amber-500" />
             Educational information only, not financial advice
           </p>

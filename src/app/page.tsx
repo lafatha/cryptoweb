@@ -116,7 +116,7 @@ export default function Home() {
       </section>
 
       {/* Why Choose CryptoFinance Section */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-900">
+      <section className="py-24 bg-white dark:bg-black">
         <div className="container max-w-6xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -169,34 +169,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-white dark:bg-black">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-8"
-          >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tight leading-tight">
-              Track Your Portfolio with AI Precision
-            </h2>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-light">
-              No more spreadsheets. No more manual entries. Just intelligence.
-            </p>
-            <div className="flex justify-center pt-8">
-              <Link href="/auth/signin">
-                <Button className="w-full sm:w-auto px-12 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 transform hover:scale-[1.02] text-lg">
-                  Connect Wallet
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 bg-gray-50 dark:bg-gray-900">
+      <section id="faq" className="py-24 bg-white dark:bg-black">
         <div className="container max-w-4xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

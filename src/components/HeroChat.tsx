@@ -157,8 +157,8 @@ function ChatBubble({
         <div
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
             message.isUser
-              ? 'bg-black text-white rounded-br-md dark:bg-white dark:text-black'
-              : 'bg-gray-100 text-gray-900 rounded-bl-md dark:bg-gray-800 dark:text-gray-100'
+              ? 'bg-gray-700 text-white rounded-br-md dark:bg-gray-600 dark:text-white'
+              : 'bg-gray-200 text-gray-900 rounded-bl-md dark:bg-gray-700 dark:text-gray-100'
           }`}
         >
           {displayedText}
@@ -167,7 +167,7 @@ function ChatBubble({
 
         {/* Avatar for user */}
         {message.isUser && (
-          <div className="flex-shrink-0 w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-sm text-white dark:text-black">
+          <div className="flex-shrink-0 w-8 h-8 bg-gray-600 dark:bg-gray-500 rounded-full flex items-center justify-center text-sm text-white dark:text-white">
             👤
           </div>
         )}
@@ -322,7 +322,7 @@ export default function HeroChat({
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold">
+            <div className="w-10 h-10 bg-gray-600 dark:bg-gray-500 rounded-full flex items-center justify-center text-white dark:text-white font-bold">
               AI
             </div>
             <div>

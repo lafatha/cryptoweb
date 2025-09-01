@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { Copy, Network, MessageSquare, LogOut, ChevronDown } from 'lucide-react'
 
 const chainConfig = {
-  [mainnet.id]: { name: 'Ethereum', symbol: 'ETH', color: 'bg-blue-500' },
-  [polygon.id]: { name: 'Polygon', symbol: 'MATIC', color: 'bg-purple-500' },
-  [bsc.id]: { name: 'BSC', symbol: 'BNB', color: 'bg-yellow-500' },
+  [mainnet.id]: { name: 'Ethereum', symbol: 'ETH', color: 'bg-gray-600' },
+  [polygon.id]: { name: 'Polygon', symbol: 'MATIC', color: 'bg-gray-500' },
+  [bsc.id]: { name: 'BSC', symbol: 'BNB', color: 'bg-gray-700' },
 }
 
 interface WalletButtonProps {
@@ -102,17 +102,16 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
     return (
       <Button 
         onClick={onConnect || (() => {})}
-        className="bg-[#1c1c1c] text-white flex items-center gap-2 hover:bg-[#333] transition-colors rounded-md"
-        size="sm"
+        className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-6 border-none"
         disabled={isDisconnecting}
       >
         {/* Wallet Icon */}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
-          <path d="M12.6667 3.33331H3.33333C2.59695 3.33331 2 3.93027 2 4.66665V11.3333C2 12.0697 2.59695 12.6666 3.33333 12.6666H12.6667C13.403 12.6666 14 12.0697 14 11.3333V4.66665C14 3.93027 13.403 3.33331 12.6667 3.33331Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M2 6.66669H14" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M10.6667 9.33331H10.6733" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+          <path d="M12.6667 3.33331H3.33333C2.59695 3.33331 2 3.93027 2 4.66665V11.3333C2 12.0697 2.59695 12.6666 3.33333 12.6666H12.6667C13.403 12.6666 14 12.0697 14 11.3333V4.66665C14 3.93027 13.403 3.33331 12.6667 3.33331Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2 6.66669H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M10.6667 9.33331H10.6733" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        {isDisconnecting ? 'Disconnecting...' : 'Start Tracking'}
+        {isDisconnecting ? 'Disconnecting...' : 'Connect Wallet'}
       </Button>
     )
   }
@@ -194,7 +193,7 @@ export function WalletButton({ onConnect }: WalletButtonProps) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleDisconnect} className="text-red-600">
+        <DropdownMenuItem onClick={handleDisconnect} className="text-gray-600 dark:text-gray-300">
           <LogOut className="w-4 h-4 mr-2" />
           {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
         </DropdownMenuItem>

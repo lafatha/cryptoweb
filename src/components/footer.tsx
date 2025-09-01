@@ -41,7 +41,7 @@ const socialLinks = [
 ];
 
   return (
-    <footer className="bg-black text-white">
+    <footer className="bg-white dark:bg-black text-black dark:text-white border-t border-gray-200 dark:border-gray-800">
       <div className="container max-w-7xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
           
@@ -53,10 +53,10 @@ const socialLinks = [
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <Link href="/" className="inline-flex items-center space-x-2">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">CF</span>
+                <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-white dark:text-black font-bold text-sm">CF</span>
                 </div>
-                <span className="text-xl font-bold text-white">
+                <span className="text-xl font-bold text-black dark:text-white">
                   CryptoFinance
                 </span>
               </Link>
@@ -66,7 +66,7 @@ const socialLinks = [
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-gray-400 text-base leading-relaxed max-w-sm"
+              className="text-gray-600 dark:text-gray-400 text-base leading-relaxed max-w-sm"
             >
               AI-powered crypto portfolio tracking for modern investors.
             </motion.p>
@@ -79,7 +79,7 @@ const socialLinks = [
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 + sectionIndex * 0.1 }}
-                className="text-lg font-semibold text-white"
+                className="text-lg font-semibold text-black dark:text-white"
               >
                 {section.title}
               </motion.h4>
@@ -93,7 +93,7 @@ const socialLinks = [
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                      className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-sm"
                     >
                       {link.name}
                     </Link>
@@ -109,10 +109,10 @@ const socialLinks = [
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="mt-12 pt-8 border-t border-gray-800"
+          className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800"
         >
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
               © {currentYear} CryptoFinance. All rights reserved.
             </p>
             
@@ -123,7 +123,7 @@ const socialLinks = [
                   <a
                     key={social.name}
                     href={social.href}
-                    className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
+                    className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white transition-all duration-200"
                     aria-label={social.name}
                   >
                     <Icon className="h-4 w-4" />

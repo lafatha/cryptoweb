@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+
 import HeroChat from '@/components/HeroChat';
 
 export default function HeroSection() {
@@ -31,11 +31,12 @@ export default function HeroSection() {
 
             {/* CTA buttons */}
             <div className="flex justify-center lg:justify-start">
-              <Link href="/auth/signin">
-                <button className="w-full sm:w-auto px-12 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl">
-                  Connect Wallet
-                </button>
-              </Link>
+              <button 
+                onClick={() => window.location.href = '/portfolio'}
+                className="w-full sm:w-auto px-12 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              >
+                Get Started
+              </button>
             </div>
 
 

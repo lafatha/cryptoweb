@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { useAccount, useDisconnect } from "wagmi"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ModeToggle } from "@/components/mode-toggle"
+import { WalletConnectModal } from "@/components/WalletConnectModal"
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -29,6 +31,7 @@ export function Navbar() {
   const { data: session, status } = useSession()
   const { isConnected } = useAccount()
   const { disconnect } = useDisconnect()
+  const [showWalletModal, setShowWalletModal] = useState(false)
 
   const handleDisconnect = () => {
     if (isConnected) {
@@ -93,11 +96,12 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link href="/portfolio">
-              <Button className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-6">
-                Connect Wallet
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setShowWalletModal(true)}
+              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-6 border-none"
+            >
+              Connect Wallet
+            </Button>
           )}
           
           {/* Mobile Navigation */}
@@ -153,6 +157,16 @@ export function Navbar() {
           </Sheet>
         </div>
       </div>
+      
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onEmailClick={() => {
+          setShowWalletModal(false)
+          window.location.href = '/auth/signin'
+        }}
+      />
     </header>
   )
 }
