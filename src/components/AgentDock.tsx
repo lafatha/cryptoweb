@@ -524,7 +524,7 @@ export default function AgentDock({ portfolioData, isOpen, onToggle }: AgentDock
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Klik "Refresh Analysis" untuk mendapatkan insights terbaru
+                      Click "Refresh Analysis" to get the latest insights
                     </p>
                   </div>
                 )}

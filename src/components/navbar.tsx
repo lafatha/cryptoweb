@@ -10,10 +10,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ModeToggle } from "@/components/mode-toggle"
 import { WalletConnectModal } from "@/components/WalletConnectModal"
-
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/portfolio", label: "Portfolio" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/news", label: "News" },
 ]
 
@@ -83,10 +82,10 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
                 <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-900">
-                  <Link href="/portfolio" className="cursor-pointer">Portfolio</Link>
+                  <Link href="/dashboard" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-900">
-                  <Link href="/dashboard/advisor" className="cursor-pointer">AI Advisor</Link>
+                  <Link href="/dashboard/chat" className="cursor-pointer">AI Advisor</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
                 <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900">
@@ -132,13 +131,13 @@ export function Navbar() {
                   <>
                     <div className="border-t border-gray-200 dark:border-gray-800 my-4" />
                     <Link 
-                      href="/dashboard/portfolio" 
+                      href="/dashboard" 
                       className="text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
-                      Portfolio
+                      Dashboard
                     </Link>
                     <Link 
-                      href="/dashboard/advisor" 
+                      href="/dashboard/chat" 
                       className="text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       AI Advisor
