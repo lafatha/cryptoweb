@@ -130,6 +130,9 @@ export function AIChat() {
     setIsTyping(true)
 
     try {
+      // Get wallet address from localStorage
+      const walletAddress = typeof window !== 'undefined' ? localStorage.getItem('wallet_address') : null
+      
       // Call the real API
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
@@ -138,6 +141,7 @@ export function AIChat() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(walletAddress && { 'x-wallet-address': walletAddress })
         },
         body: JSON.stringify({
           messages: [

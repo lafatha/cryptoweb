@@ -145,6 +145,9 @@ export default function DashboardPortfolioPage() {
   // Handle wallet connection and save to database
   useEffect(() => {
     if (isConnected && address) {
+      // Save wallet address to localStorage for API calls
+      localStorage.setItem('wallet_address', address);
+
       // Save wallet connection to database
       saveWalletConnection(address, 'metamask').then((saved) => {
         setIsWalletSaved(!!saved)
@@ -157,6 +160,8 @@ export default function DashboardPortfolioPage() {
         setIsWalletSaved(false)
       })
     } else {
+      // Clear wallet address from localStorage when disconnected
+      localStorage.removeItem('wallet_address');
       // Reset wallet portfolio when disconnected
       setWalletPortfolio([])
       setIsWalletSaved(false)
@@ -384,22 +389,22 @@ export default function DashboardPortfolioPage() {
         }
         
         const walletHoldings = walletPortfolio.map(entry => {
-          const priceKey = getCoinGeckoIdFromSymbol(entry.symbol)
+          const priceKey = getCoinGeckoIdFromSymbol(entry.asset_symbol)
           const price = priceKey ? coinPrices[priceKey]?.usd || null : null
           const priceChange = priceKey ? coinPrices[priceKey]?.usd_24h_change || null : null
           const marketValue = price ? entry.amount * price : undefined
           
           return {
-            symbol: entry.symbol,
-            name: symbolToNameMap[entry.symbol] || entry.symbol,
+            symbol: entry.asset_symbol,
+            name: symbolToNameMap[entry.asset_symbol] || entry.asset_symbol,
             balance: entry.amount.toString(),
             decimals: 18, // Default to 18 decimals
             address: 'wallet-portfolio',
             price,
             priceChange24h: priceChange,
             marketValue,
-            costBasis: entry.buyPrice * entry.amount,
-            roi: marketValue && entry.buyPrice ? ((marketValue - (entry.buyPrice * entry.amount)) / (entry.buyPrice * entry.amount)) * 100 : undefined,
+            costBasis: entry.buy_price ? entry.buy_price * entry.amount : undefined,
+            roi: marketValue && entry.buy_price ? ((marketValue - (entry.buy_price * entry.amount)) / (entry.buy_price * entry.amount)) * 100 : undefined,
             sparklineData: generateSparklineData(price || 0, priceChange || 0),
             isManual: true,
             manualEntryId: entry.id,

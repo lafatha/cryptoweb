@@ -269,8 +269,7 @@ async function computeEnhancedMetrics(body: AnalysisRequest): Promise<EnhancedMe
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/search/trending', {
       headers: {
-        'Accept': 'application/json',
-        'X-CG-Demo-API-Key': process.env.coingecko || 'CG-HoQRu1u55WSQMiR1o4uhuUsS'
+        'Accept': 'application/json'
       },
       cache: 'no-store'
     });

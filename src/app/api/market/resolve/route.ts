@@ -52,8 +52,7 @@ async function searchCoinGecko(query: string): Promise<CoinSearchResult | null> 
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'Accept': 'application/json',
-        'X-CG-Demo-API-Key': process.env.coingecko || 'CG-HoQRu1u55WSQMiR1o4uhuUsS'
+        'Accept': 'application/json'
       },
       cache: 'no-store'
     });
